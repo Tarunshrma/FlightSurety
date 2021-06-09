@@ -7,7 +7,9 @@ pragma solidity ^0.4.25;
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 
+string constant private DEFAULT_AIRLINES = "Indian Airlines"; 
 uint constant private MIN_AIRLINES_COUNT = 4; 
+uint constant private MIN_AIRLINES_FUND_REQUIRED = 10; 
 /************************************************** */
 /* Interface for data contract                      */
 /************************************************** */
@@ -63,6 +65,12 @@ contract FlightSuretyApp {
 
  
     /********************************************************************************************/
+    /*                                       Events                                             */
+    /********************************************************************************************/
+   event RegisterAirline(address airlineAddress);
+
+
+    /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
 
@@ -90,6 +98,7 @@ contract FlightSuretyApp {
         _;
     }
 
+
     /********************************************************************************************/
     /*                                       CONSTRUCTOR                                        */
     /********************************************************************************************/
@@ -106,6 +115,7 @@ contract FlightSuretyApp {
     {
         contractOwner = msg.sender;
         flightSuretyData = new FlightSuretyData(dataContractAddress);
+        _registerAirline(DEFAULT_AIRLINES,contractOwner,false);
     }
 
     /********************************************************************************************/
@@ -119,6 +129,25 @@ contract FlightSuretyApp {
     {
         return flightSuretyData.isOperational();  // Modify to call data contract's status
     }
+
+    /********************************************************************************************/
+    /*                                       Private Functions                                */
+    /********************************************************************************************/
+    function _registerAirline
+                            (
+                                string airlineName,
+                                address airlineAddress,
+                                bool votingRequired
+                            )
+                            private
+                            returns(bool success)
+    {
+        flightSuretyData.registerAirline(airlineName,airlineAddress,votingRequired);
+        success = true;
+
+        emit RegisterAirline(address)
+    }
+
 
     /********************************************************************************************/
     /*                                     SMART CONTRACT FUNCTIONS                             */
@@ -135,7 +164,6 @@ contract FlightSuretyApp {
                                 address    
                             )
                             external
-                            pure
                             returns(bool success, uint256 votes)
     {
         //If there are less then MIN_AIRLINES_COUNT regisered then no voting required and any already registered airline can register other airline
@@ -144,11 +172,30 @@ contract FlightSuretyApp {
             require(flightSuretyData.isFundedAirline(msg.sender), "Airline trying to add other airline is not registered");
 
             //If above condition met, then directly register the airlines without any voting mechenism.
-            flightSuretyData.registerAirline(airlineName,address,false);
+            _registerAirline(airlineName,address,false);
         }
 
 
         return (success, 0);
+    }
+
+    /** 
+    * @dev Fund an airline to participate in contract execution.
+    *
+    */  
+    function fundAirline
+                                (
+                                )
+                                external
+    {
+        //First check if flight to be funded is registered.
+        //then check if already funded 
+        //if both conditions meet i.e. already registsred and not funded then check for min. fund required.
+        require(flightSuretyData.isRegisteredAirline(msg.sender), "Airline trying to fund is not registered.");
+        require(flightSuretyData.isFundedAirline(msg.sender), "Airline trying to add fund already funded.");
+        require(msg.value > MIN_AIRLINES_FUND_REQUIRED ether, "Not enough ether provided to fund the airline.");
+
+        
     }
 
 

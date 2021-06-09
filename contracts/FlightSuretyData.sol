@@ -15,6 +15,7 @@ contract FlightSuretyData {
         bool isRegistered; //If amoung first found airlines then on adding it will directly registered else will require consensus mechenism.
         bool isSeedAirline; //If among initial four airlines.
         uint voteCount; //Check the voting, only matter if isRegistered is false; 
+        uint256 fundAmount;
     }
 
 
@@ -174,6 +175,28 @@ contract FlightSuretyData {
         //Add it to queue and trigger an event to start processing queue 
         RegisteredAirlines[address] = airline;
 
+//Increase the airline count
+        registeredAirlineCount ++;
+
+    }
+
+
+    /**
+    * @dev Fund an airline to be operational
+    *      Can only be called from FlightSuretyApp contract
+    *      Can only be called if operational.
+    */   
+    function fundAirline
+                            (
+                                address airlineAddress,
+                                uint256 amount
+                            ) 
+                            external
+                            requireAuthorizeContract(msg.sender)
+                            requireIsOperational
+    {
+         RegisteredAirlines[airlineAddress].isFunded = true; 
+         RegisteredAirlines[airlineAddress].fundAmount = amount;
     }
 
 
