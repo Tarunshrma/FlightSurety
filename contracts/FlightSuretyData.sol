@@ -5,12 +5,31 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 contract FlightSuretyData {
     using SafeMath for uint256;
 
+     /********************************************************************************************/
+    /*                                       Structs to store data                                     */
+    /********************************************************************************************/
+    struct Airline{
+        string name;
+        address address;
+        bool isFunded;
+        bool isRegistered; //If amoung first found airlines then on adding it will directly registered else will require consensus mechenism.
+        bool isSeedAirline; //If among initial four airlines.
+        uint voteCount; //Check the voting, only matter if isRegistered is false; 
+    }
+
+
     /********************************************************************************************/
     /*                                       DATA VARIABLES                                     */
     /********************************************************************************************/
 
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
+
+    uint8 private registeredAirlineCount = 0;                           //Keep track of total number of registered airlines... to avoid looping
+
+    mapping (address => Airline) private RegisteredAirlines;            // Registered Airlines
+    mapping (address => Airline) private PendingRegistrationAirlines;   //Airlines in queue to be registered
+    mapping (address => bool) authorizeContracts;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -56,6 +75,15 @@ contract FlightSuretyData {
         _;
     }
 
+        /**
+    * @dev Modifier that requires the "ContractOwner" account to be the function caller
+    */
+    modifier requireAuthorizeContract(address contractAddress)
+    {
+        require(authorizeContracts[contractAddress], "Caller is not authorized");
+        _;
+    }
+
     /********************************************************************************************/
     /*                                       UTILITY FUNCTIONS                                  */
     /********************************************************************************************/
@@ -93,17 +121,59 @@ contract FlightSuretyData {
     /*                                     SMART CONTRACT FUNCTIONS                             */
     /********************************************************************************************/
 
+
+   /**
+    * @dev Add an authorize contract
+    *      Can only be called by contract owner
+    *
+    */  
+    function setAuthorizeContract(address contractAddress) external requireContractOwner
+    {
+        authorizeContracts[contractAddress] = true;
+    } 
+
+       /**
+    * @dev Remove an authorize contract
+           Should have registered earlier
+    *      Can only be called by contract owner
+    *
+    */  
+    function removeAuthorizeContract(address contractAddress) 
+    external 
+    requireAuthorizeContract(contractAddress)
+    requireContractOwner
+    {
+        delete authorizeContracts[contractAddress];
+    } 
+
    /**
     * @dev Add an airline to the registration queue
     *      Can only be called from FlightSuretyApp contract
     *
     */   
     function registerAirline
-                            (   
+                            (
+                                string name,
+                                string memory address,
+                                bool votingRequired = true   
                             )
                             external
-                            pure
+                            requireAuthorizeContract(msg.sender)
+                            requireIsOperational
+                            
     {
+        //Create Airline object
+        Airline memory airline = Airline();
+        airline.address = address;
+        airline.name = name;
+        airline.isFunded = false;
+        airline.isRegistered = true;
+        airline.isSeedAirline = !votingRequired;
+        airline.voteCount = 0;
+
+        //Add it to queue and trigger an event to start processing queue 
+        RegisteredAirlines[address] = airline;
+
     }
 
 
@@ -168,6 +238,51 @@ contract FlightSuretyData {
                         returns(bytes32) 
     {
         return keccak256(abi.encodePacked(airline, flight, timestamp));
+    }
+
+
+    /**
+    * @dev Get registered airlines count.
+    *
+    */
+    function getRegisteredAirlinesCount
+                        (
+                        )
+                        view
+                        public
+                        returns(uint) 
+    {
+        return registeredAirlineCount;
+    }
+
+    /**
+    * @dev Check if this airline is registered. 
+    *
+    */
+    function isRegisteredAirline
+                        (
+                            address airlineAddress
+                        )
+                        view
+                        public
+                        returns(bool) 
+    {
+        return RegisteredAirlines[airlineAddress].isRegistered;
+    }
+
+    /**
+    * @dev Check if this airline is funder. 
+    *
+    */
+    function isFundedAirline
+                        (
+                            address airlineAddress
+                        )
+                        view
+                        public
+                        returns(bool) 
+    {
+        return RegisteredAirlines[airlineAddress].isFunded;
     }
 
     /**

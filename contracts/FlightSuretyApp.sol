@@ -6,6 +6,32 @@ pragma solidity ^0.4.25;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
+
+uint constant private MIN_AIRLINES_COUNT = 4; 
+/************************************************** */
+/* Interface for data contract                      */
+/************************************************** */
+
+contract FlightSuretyData{
+
+    function isOperational() public view returns(bool);
+
+    function getRegisteredAirlinesCount() view public returns(uint);
+
+    function isRegisteredAirline(address airlineAddress) view public returns(bool);
+
+    function isFundedAirline(address airlineAddress) view public returns(bool);
+
+
+    function registerAirline
+                            (
+                                string name,
+                                string memory address,
+                                bool votingRequired = true   
+                            )
+                            external;
+
+}
 /************************************************** */
 /* FlightSurety Smart Contract                      */
 /************************************************** */
@@ -25,6 +51,7 @@ contract FlightSuretyApp {
     uint8 private constant STATUS_CODE_LATE_OTHER = 50;
 
     address private contractOwner;          // Account used to deploy contract
+    FlightSuretyData private  flightSuretyData;
 
     struct Flight {
         bool isRegistered;
@@ -50,7 +77,7 @@ contract FlightSuretyApp {
     modifier requireIsOperational() 
     {
          // Modify to call data contract's status
-        require(true, "Contract is currently not operational");  
+        require(flightSuretyData.isOperational(), "Contract is currently not operational");  
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -73,10 +100,12 @@ contract FlightSuretyApp {
     */
     constructor
                                 (
+                                    address dataContractAddress
                                 ) 
                                 public 
     {
         contractOwner = msg.sender;
+        flightSuretyData = new FlightSuretyData(dataContractAddress);
     }
 
     /********************************************************************************************/
@@ -88,7 +117,7 @@ contract FlightSuretyApp {
                             pure 
                             returns(bool) 
     {
-        return true;  // Modify to call data contract's status
+        return flightSuretyData.isOperational();  // Modify to call data contract's status
     }
 
     /********************************************************************************************/
@@ -101,12 +130,24 @@ contract FlightSuretyApp {
     *
     */   
     function registerAirline
-                            (   
+                            (
+                                string airlineName,
+                                address    
                             )
                             external
                             pure
                             returns(bool success, uint256 votes)
     {
+        //If there are less then MIN_AIRLINES_COUNT regisered then no voting required and any already registered airline can register other airline
+        if(flightSuretyData.getRegisteredAirlinesCount() < MIN_AIRLINES_COUNT){
+            require(flightSuretyData.isRegisteredAirline(msg.sender), "Airline trying to add other airline is not registered");
+            require(flightSuretyData.isFundedAirline(msg.sender), "Airline trying to add other airline is not registered");
+
+            //If above condition met, then directly register the airlines without any voting mechenism.
+            flightSuretyData.registerAirline(airlineName,address,false);
+        }
+
+
         return (success, 0);
     }
 
