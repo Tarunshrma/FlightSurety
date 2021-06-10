@@ -10,7 +10,7 @@ contract FlightSuretyData {
     /********************************************************************************************/
     struct Airline{
         string name;
-        address address;
+        address airlineAddress;
         bool isFunded;
         bool isRegistered; //If amoung first found airlines then on adding it will directly registered else will require consensus mechenism.
         bool isSeedAirline; //If among initial four airlines.
@@ -155,8 +155,8 @@ contract FlightSuretyData {
     function registerAirline
                             (
                                 string name,
-                                string memory address,
-                                bool votingRequired = true   
+                                address airlineAddress,
+                                bool votingRequired   
                             )
                             external
                             requireAuthorizeContract(msg.sender)
@@ -164,18 +164,20 @@ contract FlightSuretyData {
                             
     {
         //Create Airline object
-        Airline memory airline = Airline();
-        airline.address = address;
-        airline.name = name;
-        airline.isFunded = false;
-        airline.isRegistered = true;
-        airline.isSeedAirline = !votingRequired;
-        airline.voteCount = 0;
+        Airline memory airline = Airline({
+            airlineAddress : airlineAddress,
+            name : name,
+            isFunded : false,
+            isRegistered : true,
+            isSeedAirline : !votingRequired,
+            voteCount : 0,
+            fundAmount : 0
+        });
 
         //Add it to queue and trigger an event to start processing queue 
-        RegisteredAirlines[address] = airline;
+        RegisteredAirlines[airlineAddress] = airline;
 
-//Increase the airline count
+        //Increase the airline count
         registeredAirlineCount ++;
 
     }
