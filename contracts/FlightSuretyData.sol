@@ -26,16 +26,16 @@ contract FlightSuretyData {
     address private contractOwner;                                      // Account used to deploy contract
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
 
-    uint8 private registeredAirlineCount = 0;                           //Keep track of total number of registered airlines... to avoid looping
+    uint256  registeredAirlineCount = 0;                           //Keep track of total number of registered airlines... to avoid looping
 
-    mapping (address => Airline) private RegisteredAirlines;            // Registered Airlines
+    mapping (address => Airline)  RegisteredAirlines;            // Registered Airlines
     mapping (address => Airline) private PendingRegistrationAirlines;   //Airlines in queue to be registered
     mapping (address => bool) authorizeContracts;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
-
+   event AirlineDataSaved(address airlineAddress);
 
     /**
     * @dev Constructor
@@ -159,12 +159,13 @@ contract FlightSuretyData {
                                 bool votingRequired   
                             )
                             external
-                            requireAuthorizeContract(msg.sender)
+                            //requireAuthorizeContract(msg.sender)
                             requireIsOperational
                             
     {
+
         //Create Airline object
-        Airline memory airline = Airline({
+        RegisteredAirlines[airlineAddress] = Airline({
             airlineAddress : airlineAddress,
             name : name,
             isFunded : false,
@@ -174,12 +175,10 @@ contract FlightSuretyData {
             fundAmount : 0
         });
 
-        //Add it to queue and trigger an event to start processing queue 
-        RegisteredAirlines[airlineAddress] = airline;
-
         //Increase the airline count
-        registeredAirlineCount ++;
+        registeredAirlineCount.add(1);
 
+        emit AirlineDataSaved(airlineAddress);
     }
 
 
@@ -194,7 +193,7 @@ contract FlightSuretyData {
                                 uint256 amount
                             ) 
                             external
-                            requireAuthorizeContract(msg.sender)
+                            //requireAuthorizeContract(msg.sender)
                             requireIsOperational
     {
          RegisteredAirlines[airlineAddress].isFunded = true; 
@@ -206,51 +205,38 @@ contract FlightSuretyData {
     * @dev Buy insurance for a flight
     *
     */   
-    function buy
-                            (                             
-                            )
-                            external
-                            payable
-    {
+    // function buy
+    //                         (                             
+    //                         )
+    //                         external
+    //                         payable
+    // {
 
-    }
+    // }
 
     /**
      *  @dev Credits payouts to insurees
     */
-    function creditInsurees
-                                (
-                                )
-                                external
-                                pure
-    {
-    }
+    // function creditInsurees
+    //                             (
+    //                             )
+    //                             external
+    //                             pure
+    // {
+    // }
     
 
     /**
      *  @dev Transfers eligible payout funds to insuree
      *
     */
-    function pay
-                            (
-                            )
-                            external
-                            pure
-    {
-    }
-
-   /**
-    * @dev Initial funding for the insurance. Unless there are too many delayed flights
-    *      resulting in insurance payouts, the contract should be self-sustaining
-    *
-    */   
-    function fund
-                            (   
-                            )
-                            public
-                            payable
-    {
-    }
+    // function pay
+    //                         (
+    //                         )
+    //                         external
+    //                         pure
+    // {
+    // }
 
     function getFlightKey
                         (
@@ -270,12 +256,10 @@ contract FlightSuretyData {
     * @dev Get registered airlines count.
     *
     */
-    function getRegisteredAirlinesCount
-                        (
-                        )
+    function getRegisteredAirlinesCount()
                         view
                         public
-                        returns(uint) 
+                        returns(uint256) 
     {
         return registeredAirlineCount;
     }
@@ -318,7 +302,7 @@ contract FlightSuretyData {
                             external 
                             payable 
     {
-        fund();
+        //fund();
     }
 
 

@@ -16,15 +16,51 @@ import './flightsurety.css';
             display('Operational Status', 'Check if contract is operational', [ { label: 'Operational Status', error: error, value: result} ]);
         });
     
-
-        // User-submitted transaction
-        DOM.elid('submit-oracle').addEventListener('click', () => {
-            let flight = DOM.elid('flight-number').value;
+        // Register Airlines
+        DOM.elid('submit-airline').addEventListener('click', () => {
+            let airlineName = DOM.elid('airline-name').value;
+            let airlineAddress = DOM.elid('airline-address').value;
             // Write transaction
-            contract.fetchFlightStatus(flight, (error, result) => {
-                display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+            contract.registerAirline(airlineName,airlineAddress, (error, result) => {
+                if(error){
+                    console.log(error);
+                    alert(error);
+                }else{
+                    console.log("Airline Registerd sucessfully..");
+                    alert("Airline Registerd sucessfully..");
+                }
+                
+                //display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
             });
         })
+
+        //Fund Airlines
+        DOM.elid('fund-airlines').addEventListener('click', () => {
+            let airlineAddress = DOM.elid('airline-fund-address').value;
+            // Write transaction
+            contract.fundAirline(airlineAddress, (error, result) => {
+                if(error){
+                    console.log(error);
+                    alert(error);
+                }else{
+                    console.log("Airline funded sucessfully..");
+                    alert("Airline funded sucessfully..");
+                }
+                
+                //display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+            });
+        })
+
+        // User-submitted transaction
+        // DOM.elid('submit-oracle').addEventListener('click', () => {
+        //     let flight = DOM.elid('flight-number').value;
+        //     // Write transaction
+        //     contract.fetchFlightStatus(flight, (error, result) => {
+        //         display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+        //     });
+        // })
+
+        
     
     });
     

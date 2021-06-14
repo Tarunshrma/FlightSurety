@@ -14,23 +14,48 @@ export default class Contract {
         this.passengers = [];
     }
 
-    initialize(callback) {
-        this.web3.eth.getAccounts((error, accts) => {
+    async initialize(callback) {
+        // this.web3.eth.getAccounts((error, accts) => {
            
-            this.owner = accts[0];
+        //     this.owner = accts[0];
 
-            let counter = 1;
+        //     let counter = 1;
             
-            while(this.airlines.length < 5) {
-                this.airlines.push(accts[counter++]);
-            }
+        //     while(this.airlines.length < 5) {
+        //         this.airlines.push(accts[counter++]);
+        //     }
 
-            while(this.passengers.length < 5) {
-                this.passengers.push(accts[counter++]);
-            }
+        //     while(this.passengers.length < 5) {
+        //         this.passengers.push(accts[counter++]);
+        //     }
 
+        //     callback();
+        // });
+
+        if (window.ethereum) {
+            self.web3Provider = window.ethereum;
+            try {
+                // Request account access
+                await window.ethereum.enable();
+            } catch (error) {
+                // User denied account access...
+                console.error("User denied account access")
+            }
+        }
+        // Legacy dapp browsers...
+        else if (window.web3) {
+            self.web3Provider = window.web3.currentProvider;
+        }
+        // If no injected web3 instance is detected, fall back to Ganache
+        else {
+            self.web3Provider = new Web3.providers.HttpProvider(config.url);
+        }
+        
+        this.web3.eth.getAccounts((error, accts) => {
+            this.owner = accts[0];
             callback();
         });
+       
     }
 
     isOperational(callback) {
@@ -38,6 +63,21 @@ export default class Contract {
        self.flightSuretyApp.methods
             .isOperational()
             .call({ from: self.owner}, callback);
+    }
+
+    registerAirline(airlineName,airlineAddress,callback) {
+        let self = this;
+        self.flightSuretyApp.methods
+            .registerAirline(airlineName,airlineAddress)
+            .send({ from: self.owner, gas: 6721900}, callback);
+    }
+
+    fundAirline(airlineAddress,callback) {
+        let self = this;
+        const fee = 10000000000000000000;
+        self.flightSuretyApp.methods
+            .fundAirline(airlineAddress)
+            .send({ from: airlineAddress, value: fee}, callback);
     }
 
     fetchFlightStatus(flight, callback) {
