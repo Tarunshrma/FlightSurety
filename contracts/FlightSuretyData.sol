@@ -4,6 +4,7 @@ import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
 contract FlightSuretyData {
     using SafeMath for uint256;
+    using SafeMath for uint;
 
      /********************************************************************************************/
     /*                                       Structs to store data                                     */
@@ -35,7 +36,9 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
-   event AirlineDataSaved(address airlineAddress);
+   event AirlineDataSaved(address airlineAddress, uint256 airlineCount);
+
+   event AirlineDataSavedInQueueForRegistration(address airlineAddress);
 
     /**
     * @dev Constructor
@@ -148,7 +151,7 @@ contract FlightSuretyData {
     } 
 
    /**
-    * @dev Add an airline to the registration queue
+    * @dev Add an airline to the registration
     *      Can only be called from FlightSuretyApp contract
     *
     */   
@@ -158,7 +161,7 @@ contract FlightSuretyData {
                                 address airlineAddress,
                                 bool votingRequired   
                             )
-                            external
+                            public
                             //requireAuthorizeContract(msg.sender)
                             requireIsOperational
                             
@@ -176,9 +179,66 @@ contract FlightSuretyData {
         });
 
         //Increase the airline count
-        registeredAirlineCount.add(1);
+        registeredAirlineCount = registeredAirlineCount.add(1);
 
-        emit AirlineDataSaved(airlineAddress);
+        emit AirlineDataSaved(airlineAddress,registeredAirlineCount);
+    }
+
+    /**
+    * @dev Add an airline to the registration queue. Voting required to add it.
+    *      Can only be called from FlightSuretyApp contract
+    *
+    */   
+    function addAirlineToRegistrationQueue
+                            (
+                                string name,
+                                address airlineAddress
+                            )
+                            external
+                            //requireAuthorizeContract(msg.sender)
+                            requireIsOperational
+                            
+    {
+
+        //Create Airline object
+        PendingRegistrationAirlines[airlineAddress] = Airline({
+            airlineAddress : airlineAddress,
+            name : name,
+            isFunded : false,
+            isRegistered : false,
+            isSeedAirline : false,
+            voteCount : 1,  // Initialize vote count to one.. whoever adding it queue is by default giving it's vote.
+            fundAmount : 0
+        });
+
+        emit AirlineDataSavedInQueueForRegistration(airlineAddress);
+    }
+
+        /**
+    * @dev Add an airline to the registration queue. Voting required to add it.
+    *      Can only be called from FlightSuretyApp contract
+    *
+    */   
+    function voteAirlineForRegistration
+                            (
+                                address airlineAddress
+                            )
+                            external
+                            //requireAuthorizeContract(msg.sender)
+                            requireIsOperational
+                            returns (uint voteCount)
+                            
+    {
+         PendingRegistrationAirlines[airlineAddress].voteCount = PendingRegistrationAirlines[airlineAddress].voteCount.add(1);
+         voteCount = PendingRegistrationAirlines[airlineAddress].voteCount;
+
+         //If votes are more then equal to half of already registred airline then register the airlines reomve it from queue
+         if (voteCount >= registeredAirlineCount.div(2)){
+            registerAirline(PendingRegistrationAirlines[airlineAddress].name, airlineAddress, true);
+            delete PendingRegistrationAirlines[airlineAddress];
+         }
+
+         return (voteCount);
     }
 
 
@@ -262,6 +322,21 @@ contract FlightSuretyData {
                         returns(uint256) 
     {
         return registeredAirlineCount;
+    }
+
+    /**
+    * @dev Check if Airline is in queue for registeration (voting required). 
+    *
+    */
+    function isRegisterationPendingAirline
+                        (
+                            address airlineAddress
+                        )
+                        view
+                        public
+                        returns(bool) 
+    {
+        return PendingRegistrationAirlines[airlineAddress].airlineAddress != address(0);
     }
 
     /**

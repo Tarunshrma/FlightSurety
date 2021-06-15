@@ -3,11 +3,12 @@ import Config from './config.json';
 import Web3 from 'web3';
 
 export default class Contract {
+
     constructor(network, callback) {
 
-        let config = Config[network];
-        this.web3 = new Web3(new Web3.providers.HttpProvider(config.url));
-        this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, config.appAddress);
+        this.config = Config[network];
+        this.web3 = new Web3(new Web3.providers.HttpProvider(this.config.url));
+        this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, this.config.appAddress);
         this.initialize(callback);
         this.owner = null;
         this.airlines = [];
@@ -69,12 +70,12 @@ export default class Contract {
         let self = this;
         self.flightSuretyApp.methods
             .registerAirline(airlineName,airlineAddress)
-            .send({ from: self.owner, gas: 6721900}, callback);
+            .send({ from: self.owner, gas: this.config.gas}, callback);
     }
 
     fundAirline(airlineAddress,callback) {
         let self = this;
-        const fee = 10000000000000000000;
+        const fee = this.web3.utils.toWei('10', 'ether'); //10 Ether
         self.flightSuretyApp.methods
             .fundAirline(airlineAddress)
             .send({ from: airlineAddress, value: fee}, callback);

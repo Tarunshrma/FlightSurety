@@ -22,7 +22,7 @@ contract FlightSuretyData{
 
     function removeAuthorizeContract(address contractAddress) external;
 
-    function registerAirline(string name, address airlineAddress, bool votingRequired) external;
+    function registerAirline(string name, address airlineAddress, bool votingRequired) public;
 
     function fundAirline(address airlineAddress,uint256 amount) external;
 
@@ -38,6 +38,12 @@ contract FlightSuretyData{
     function isRegisteredAirline(address airlineAddress) view public returns(bool);
 
     function isFundedAirline(address airlineAddress) view public returns(bool);
+
+    function isRegisterationPendingAirline(address airlineAddress) view public returns(bool);
+
+    function addAirlineToRegistrationQueue(string name, address airlineAddress) external;
+
+    function voteAirlineForRegistration(address airlineAddress) external returns (uint voteCount); 
 }
 /************************************************** */
 /* FlightSurety Smart Contract                      */
@@ -80,6 +86,9 @@ contract FlightSuretyApp {
 
    event AirlineFunded(address airlineAddress);
 
+   event AirlinePendingVoting(address airlineAddress);
+
+   event AirlineVoted(address airlineAddress, uint256 voteCount);
 
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
@@ -177,7 +186,7 @@ contract FlightSuretyApp {
                                 address airlineAddress   
                             )
                             external
-                            returns(bool success, uint256 votes)
+                            returns(bool success)
     {
         //Airline should be registred already.
         require(!flightSuretyData.isRegisteredAirline(airlineAddress), "Airline already registered.");
@@ -186,22 +195,23 @@ contract FlightSuretyApp {
         require(flightSuretyData.isRegisteredAirline(msg.sender), "Airline trying to add other airline is not registered");
         require(flightSuretyData.isFundedAirline(msg.sender), "Airline trying to add other airline does not have enough funds");
 
+        //Check if airline is already in queue for registration 
+        require(!flightSuretyData.isRegisterationPendingAirline(airlineAddress), "Airline is already in queue for registeration.");
+
+
         //If there are less then MIN_AIRLINES_COUNT regisered then no voting required and any already registered airline can register other airline
-        //if(flightSuretyData.getRegisteredAirlinesCount() < MIN_AIRLINES_COUNT){
+        if(flightSuretyData.getRegisteredAirlinesCount() < MIN_AIRLINES_COUNT){
 
             //If above condition met, then directly register the airlines without any voting mechenism.
             _registerAirline(airlineName,airlineAddress,false);
              
-            success = true;
-            votes = 0;
-        // }else{
-        //     success = false;
-        //     votes = 0;
-        // }
+            return (true);
+        }
 
-
-
-        return (success, votes);
+      //Add airline to queue for voting.
+      flightSuretyData.addAirlineToRegistrationQueue(airlineName,airlineAddress);
+      emit AirlinePendingVoting(airlineAddress);
+        return (false);
     }
 
     /** 
@@ -227,6 +237,23 @@ contract FlightSuretyApp {
         emit AirlineFunded(airlineAddress);
     }
 
+
+   /**
+    * @dev Vote an airline for registration... returns the votes obtained so far, if enough votes then register the airlines.
+    * TODO: Add logic to check if this user already voted for this airlines.
+    */  
+    function voteAirline(address airlineAddress) external returns (uint voteCount){
+        //Check if airline is already in queue for registration and registered and funded to participate in voting.
+        require(flightSuretyData.isRegisterationPendingAirline(airlineAddress), "Airline not in queue and is not eligible for voting.");
+        require(flightSuretyData.isRegisteredAirline(msg.sender), "Airline trying to vote other airline is not registered");
+        require(flightSuretyData.isFundedAirline(msg.sender), "Airline trying to vote other airline does not have enough funds");
+
+        voteCount = flightSuretyData.voteAirlineForRegistration(airlineAddress);
+
+        emit AirlineVoted(airlineAddress, voteCount);
+
+        return (voteCount);
+    }
 
    /**
     * @dev Register a future flight for insuring.
