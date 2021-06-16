@@ -70,7 +70,7 @@ export default class Contract {
         let self = this;
         self.flightSuretyApp.methods
             .registerAirline(airlineName,airlineAddress)
-            .send({ from: self.owner, gas: this.config.gas}, callback);
+            .send({ from: self.owner, gas: self.config.gas}, callback);
     }
 
     fundAirline(airlineAddress,callback) {
@@ -78,7 +78,14 @@ export default class Contract {
         const fee = this.web3.utils.toWei('10', 'ether'); //10 Ether
         self.flightSuretyApp.methods
             .fundAirline(airlineAddress)
-            .send({ from: airlineAddress, value: fee}, callback);
+            .send();//{ from: airlineAddress, value: fee}, callback);
+    }
+
+    voteAirline(airlineAddress,callback) {
+        let self = this;
+        self.flightSuretyApp.methods
+            .voteAirline(airlineAddress)
+            .send({ from: self.owner,  gas: self.config.gas}, callback);
     }
 
     fetchFlightStatus(flight, callback) {

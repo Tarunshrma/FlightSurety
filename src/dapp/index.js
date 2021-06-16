@@ -51,6 +51,23 @@ import './flightsurety.css';
             });
         })
 
+        //Vote For Airlines
+        DOM.elid('vote-airlines').addEventListener('click', () => {
+            let airlineAddress = DOM.elid('airline-fund-address').value;
+            // Write transaction
+            contract.voteAirline(airlineAddress, (error, result) => {
+                if(error){
+                    console.log(error);
+                    alert(error);
+                }else{
+                    console.log("Airline voted sucessfully.." + result);
+                    alert("Airline vote sucessfully: " + result);
+                }
+                
+                //display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+            });
+        })
+
         // User-submitted transaction
         // DOM.elid('submit-oracle').addEventListener('click', () => {
         //     let flight = DOM.elid('flight-number').value;

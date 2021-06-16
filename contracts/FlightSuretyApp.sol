@@ -186,7 +186,7 @@ contract FlightSuretyApp {
                                 address airlineAddress   
                             )
                             external
-                            returns(bool success)
+                            returns(bool)
     {
         //Airline should be registred already.
         require(!flightSuretyData.isRegisteredAirline(airlineAddress), "Airline already registered.");
@@ -204,7 +204,6 @@ contract FlightSuretyApp {
 
             //If above condition met, then directly register the airlines without any voting mechenism.
             _registerAirline(airlineName,airlineAddress,false);
-             
             return (true);
         }
 
