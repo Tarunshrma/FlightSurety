@@ -16,7 +16,19 @@ contract FlightSuretyData {
         bool isRegistered; //If amoung first found airlines then on adding it will directly registered else will require consensus mechenism.
         bool isSeedAirline; //If among initial four airlines.
         uint voteCount; //Check the voting, only matter if isRegistered is false; 
-        uint256 fundAmount;
+    }
+
+    struct Flight {
+        bool isRegistered;
+        uint8 statusCode;
+        uint256 updatedTimestamp;        
+        address airline;
+    }
+
+    struct Pessanger{
+        address pessangerAddress; //Pessanger Address
+        uint256 insurenceAmount; //Original amount on stake for insurence
+        uint256 claimAmount;  // Amount that can be claimed by pessanger and withdraw to his/her wallet
     }
 
 
@@ -25,6 +37,7 @@ contract FlightSuretyData {
     /********************************************************************************************/
 
     address private contractOwner;                                      // Account used to deploy contract
+    uint256 private totalAvailableFunds;                                //Total available funds
     bool private operational = true;                                    // Blocks all state changes throughout the contract if false
 
     uint256  registeredAirlineCount = 0;                           //Keep track of total number of registered airlines... to avoid looping
@@ -32,6 +45,13 @@ contract FlightSuretyData {
     mapping (address => Airline)  RegisteredAirlines;            // Registered Airlines
     mapping (address => Airline) private PendingRegistrationAirlines;   //Airlines in queue to be registered
     mapping (address => bool) authorizeContracts;
+
+
+
+
+    mapping(bytes32 => Flight) private flights;
+    mapping(bytes32 => Pessanger[]) private insurence; //Key will be flight key composed of fligt name, airline address and timestamp
+
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -174,8 +194,7 @@ contract FlightSuretyData {
             isFunded : false,
             isRegistered : true,
             isSeedAirline : !votingRequired,
-            voteCount : 0,
-            fundAmount : 0
+            voteCount : 0
         });
 
         //Increase the airline count
@@ -207,8 +226,7 @@ contract FlightSuretyData {
             isFunded : false,
             isRegistered : false,
             isSeedAirline : false,
-            voteCount : 1,  // Initialize vote count to one.. whoever adding it queue is by default giving it's vote.
-            fundAmount : 0
+            voteCount : 1  // Initialize vote count to one.. whoever adding it queue is by default giving it's vote.
         });
 
         emit AirlineDataSavedInQueueForRegistration(airlineAddress);
@@ -257,22 +275,37 @@ contract FlightSuretyData {
                             requireIsOperational
     {
          RegisteredAirlines[airlineAddress].isFunded = true; 
-         RegisteredAirlines[airlineAddress].fundAmount = amount;
+         totalAvailableFunds = totalAvailableFunds.add(amount); //Add the fund to pool of funds 
     }
 
+
+ address pessangerAddress; //Pessanger Address
+        uint256 insurenceAmount; //Original amount on stake for insurence
+        uint256 claimAmount;
 
    /**
     * @dev Buy insurance for a flight
     *
     */   
-    // function buy
-    //                         (                             
-    //                         )
-    //                         external
-    //                         payable
-    // {
+    function buy
+                            (  
+                                bytes32 flightKey,
+                                address pessangerAddress,
+                                uint256 insuredAmount                           
+                            )
+                            external
+                            requireIsOperational
+                            //requireAuthorizeContract(msg.sender)
+    {
+        insurence[flightKey] = Pessanger({
+            pessangerAddress : pessangerAddress,
+            insurenceAmount : insuredAmount,
+            claimAmount : 0
+        });
 
-    // }
+        totalAvailableFunds = totalAvailableFunds.add(insuredAmount); 
+
+    }
 
     /**
      *  @dev Credits payouts to insurees
@@ -298,18 +331,6 @@ contract FlightSuretyData {
     // {
     // }
 
-    function getFlightKey
-                        (
-                            address airline,
-                            string memory flight,
-                            uint256 timestamp
-                        )
-                        pure
-                        internal
-                        returns(bytes32) 
-    {
-        return keccak256(abi.encodePacked(airline, flight, timestamp));
-    }
 
 
     /**
@@ -368,6 +389,28 @@ contract FlightSuretyData {
     {
         return RegisteredAirlines[airlineAddress].isFunded;
     }
+
+
+// region Utility functions
+
+   /**
+    * @dev Generate unique flight key.
+    *
+    */
+    function getFlightKey
+                        (
+                            address airline,
+                            string flight,
+                            uint256 timestamp
+                        )
+                        pure
+                        internal
+                        returns(bytes32) 
+    {
+        return keccak256(abi.encodePacked(airline, flight, timestamp));
+    }
+
+    // endregion
 
     /**
     * @dev Fallback function for funding smart contract.

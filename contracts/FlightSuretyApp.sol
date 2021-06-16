@@ -26,7 +26,7 @@ contract FlightSuretyData{
 
     function fundAirline(address airlineAddress,uint256 amount) external;
 
-    //function buy() external;
+    function buy(bytes32 flightKey, address pessangerAddress, uint256 insuredAmount) external;
 
     //function creditInsurees() external;
 
@@ -70,13 +70,6 @@ contract FlightSuretyApp {
     address private contractOwner;          // Account used to deploy contract
     FlightSuretyData private  flightSuretyData;
 
-    struct Flight {
-        bool isRegistered;
-        uint8 statusCode;
-        uint256 updatedTimestamp;        
-        address airline;
-    }
-    mapping(bytes32 => Flight) private flights;
 
  
     /********************************************************************************************/
@@ -90,6 +83,7 @@ contract FlightSuretyApp {
 
    event AirlineVoted(address airlineAddress, uint256 voteCount);
 
+   event InsurencePurchased(string flightName, uint256 amount);
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -106,6 +100,18 @@ contract FlightSuretyApp {
     {
          // Modify to call data contract's status
         require(flightSuretyData.isOperational(), "Contract is currently not operational");  
+        _;  // All modifiers require an "_" which indicates where the function body will be added
+    }
+
+        /**
+    * @dev Modifier that requires the "operational" boolean variable to be "true"
+    *      This is used on all state changing functions to pause the contract in 
+    *      the event there is an issue that needs to be fixed
+    */
+    modifier requireValidAddress(address addressToCheck) 
+    {
+         // Modify to check if address is valid
+        require(addressToCheck != address(0), "Address is invalid");  
         _;  // All modifiers require an "_" which indicates where the function body will be added
     }
 
@@ -186,6 +192,7 @@ contract FlightSuretyApp {
                                 address airlineAddress   
                             )
                             external
+                            requireIsOperational
                             returns(bool)
     {
         //Airline should be registred already.
@@ -223,6 +230,7 @@ contract FlightSuretyApp {
                                 )
                                 payable
                                 external
+                                requireIsOperational
     {
         //First check if flight to be funded is registered.
         //then check if already funded 
@@ -241,7 +249,7 @@ contract FlightSuretyApp {
     * @dev Vote an airline for registration... returns the votes obtained so far, if enough votes then register the airlines.
     * TODO: Add logic to check if this user already voted for this airlines.
     */  
-    function voteAirline(address airlineAddress) external returns (uint voteCount){
+    function voteAirline(address airlineAddress) external requireIsOperational returns (uint voteCount) {
         //Check if airline is already in queue for registration and registered and funded to participate in voting.
         require(flightSuretyData.isRegisterationPendingAirline(airlineAddress), "Airline not in queue and is not eligible for voting.");
         require(flightSuretyData.isRegisteredAirline(msg.sender), "Airline trying to vote other airline is not registered");
@@ -255,16 +263,27 @@ contract FlightSuretyApp {
     }
 
    /**
-    * @dev Register a future flight for insuring.
+    * @dev buy insurence for flight.
     *
     */  
-    function registerFlight
+    function buyInsurence
                                 (
+                                    string flightName,
+                                    address airlineAddress,
+                                    uint256 timestamp
                                 )
                                 external
-                                pure
+                                payable
+                                requireIsOperational
+                                requireValidAddress(airlineAddress)
     {
+        require(msg.value > 0 ether, "Please provide ethers to purchase insurence");
+        require(msg.value < 1 ether, "Provide less then 1 ether.");
 
+       bytes32 flightKey = getFlightKey(airlineAddress,flightName,timestamp);
+       flightSuretyData.buy(flightKey, msg.sender, msg.value);
+
+       emit InsurencePurchased(flightName,msg.value);
     }
     
    /**
