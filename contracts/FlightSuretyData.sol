@@ -25,9 +25,9 @@ contract FlightSuretyData {
         address airline;
     }
 
-    struct Pessanger{
+    struct InsuredPessanger{
         address pessangerAddress; //Pessanger Address
-        uint256 insurenceAmount; //Original amount on stake for insurence
+        mapping (bytes32 => uint256) insuredFlights; //List of flights insured by pessanger.
         uint256 claimAmount;  // Amount that can be claimed by pessanger and withdraw to his/her wallet
     }
 
@@ -50,8 +50,7 @@ contract FlightSuretyData {
 
 
     mapping(bytes32 => Flight) private flights;
-    mapping(bytes32 => Pessanger[]) private insurence; //Key will be flight key composed of fligt name, airline address and timestamp
-
+    InsuredPessanger[] private insuredPessangers;
 
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
@@ -297,14 +296,46 @@ contract FlightSuretyData {
                             requireIsOperational
                             //requireAuthorizeContract(msg.sender)
     {
-        insurence[flightKey] = Pessanger({
-            pessangerAddress : pessangerAddress,
-            insurenceAmount : insuredAmount,
-            claimAmount : 0
-        });
+
+    //Check if flight is already purchased by this pessanger, if yes then revert the transation
+    uint256 index = pessangerInsured(pessangerAddress);
+    if(index >= 0){
+       //Get the already insured pessanger and add the flight key to list of insured flights.
+       require(insuredPessangers[index].insuredFlights[flightKey] != 0,"Pessanger has already insured this flight");
+       insuredPessangers[index].insuredFlights[flightKey] = insuredAmount;
+    }else{
+        //Add new entry to insured pessanger.
+        insuredPessangers.push(
+            InsuredPessanger({
+                pessangerAddress : pessangerAddress,
+                //insuredFlights : ,
+                claimAmount : 0
+            }));
+
+            insuredPessangers[insuredPessangers.length - 1].insuredFlights[flightKey] = insuredAmount;
+    }
 
         totalAvailableFunds = totalAvailableFunds.add(insuredAmount); 
 
+    }
+
+
+    function pessangerInsured(address pessangerAddress) internal returns(uint256 insuredPessangerIndex)
+    {
+        //Initialize to index not found
+        insuredPessangerIndex = uint256(-1);
+
+
+        for (uint i=0; i<insuredPessangers.length; i++) {
+
+            if(pessangerAddress == insuredPessangers[i].pessangerAddress){
+                insuredPessangerIndex = i;
+                break;
+            }
+
+        }
+
+        return (insuredPessangerIndex);
     }
 
     /**

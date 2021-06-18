@@ -277,6 +277,8 @@ contract FlightSuretyApp {
                                 requireIsOperational
                                 requireValidAddress(airlineAddress)
     {
+        require(flightSuretyData.isRegisteredAirline(airlineAddress), "Airline is not registered");
+        require(flightSuretyData.isFundedAirline(airlineAddress), "Airline does not have enough funds");
         require(msg.value > 0 ether, "Please provide ethers to purchase insurence");
         require(msg.value < 1 ether, "Provide less then 1 ether.");
 

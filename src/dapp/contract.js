@@ -78,7 +78,7 @@ export default class Contract {
         const fee = this.web3.utils.toWei('10', 'ether'); //10 Ether
         self.flightSuretyApp.methods
             .fundAirline(airlineAddress)
-            .send();//{ from: airlineAddress, value: fee}, callback);
+            .send({ from: airlineAddress, value: fee}, callback);
     }
 
     voteAirline(airlineAddress,callback) {
@@ -86,6 +86,14 @@ export default class Contract {
         self.flightSuretyApp.methods
             .voteAirline(airlineAddress)
             .send({ from: self.owner,  gas: self.config.gas}, callback);
+    }
+
+    buyInsurence(flightName,airlineAddress,timestamp,amount,callback) {
+        let self = this;
+        const insuredAmountInWei = this.web3.utils.toWei(amount, 'ether');
+        self.flightSuretyApp.methods
+            .buyInsurence(flightName,airlineAddress,timestamp)
+            .send({ from: self.owner,  gas: self.config.gas, value : insuredAmountInWei}, callback);
     }
 
     fetchFlightStatus(flight, callback) {

@@ -68,6 +68,26 @@ import './flightsurety.css';
             });
         })
 
+        //Buy Insurence
+        DOM.elid('submit-flight-insurence').addEventListener('click', () => {
+            let flightName = DOM.elid('flight-name').value;
+            let airlineAddress = DOM.elid('insurence-airline-name').value;
+            let timestamp = DOM.elid('flight-timestamp').value;
+            let insuredAmount = DOM.elid('insurence-amount').value;
+            // Write transaction
+            contract.buyInsurence(flightName,airlineAddress,timestamp,insuredAmount, (error, result) => {
+                if(error){
+                    console.log(error);
+                    alert(error);
+                }else{
+                    console.log("Flight Insured Succesfully" + result);
+                    alert("Flight Insured Succesfully: " + result);
+                }
+                
+                //display('Oracles', 'Trigger oracles', [ { label: 'Fetch Flight Status', error: error, value: result.flight + ' ' + result.timestamp} ]);
+            });
+        })
+
         // User-submitted transaction
         // DOM.elid('submit-oracle').addEventListener('click', () => {
         //     let flight = DOM.elid('flight-number').value;
