@@ -96,12 +96,12 @@ export default class Contract {
             .send({ from: "0x5cf6BB79F58cC60420177c372Ea379c1f8C238A5",  gas: self.config.gas, value : insuredAmountInWei}, callback);
     }
 
-    fetchFlightStatus(flight, callback) {
+    fetchFlightStatus(flightName,airlineAddress,timestamp, callback) {
         let self = this;
         let payload = {
-            airline: self.airlines[0],
-            flight: flight,
-            timestamp: Math.floor(Date.now() / 1000)
+            airline: airlineAddress,
+            flight: flightName,
+            timestamp: timestamp
         } 
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
