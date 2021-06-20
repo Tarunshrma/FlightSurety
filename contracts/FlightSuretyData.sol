@@ -55,9 +55,15 @@ contract FlightSuretyData {
     /********************************************************************************************/
     /*                                       EVENT DEFINITIONS                                  */
     /********************************************************************************************/
-   event AirlineDataSaved(address airlineAddress, uint256 airlineCount);
+    event AirlineDataSaved(address airlineAddress, uint256 airlineCount);
 
-   event AirlineDataSavedInQueueForRegistration(address airlineAddress);
+    event AirlineDataSavedInQueueForRegistration(address airlineAddress);
+
+    event buyInsurenceDataSaved(bytes32 flightKey,uint256 totalInsuredPessangerCount,uint256 totalAvailableFunds);
+
+    event  ExistingPessangerCheckIfFlightAlreadyInsured(address pessangerAddress,uint256 index,uint256 insuredFlightAmount);
+
+    event  ExistingPessangerNewFlightInsurence(address pessangerAddress);   
 
     /**
     * @dev Constructor
@@ -299,10 +305,17 @@ contract FlightSuretyData {
 
     //Check if flight is already purchased by this pessanger, if yes then revert the transation
     uint256 index = pessangerInsured(pessangerAddress);
-    if(index >= 0){
+
+    if(index != 999){
+
+       emit  ExistingPessangerCheckIfFlightAlreadyInsured(pessangerAddress, index, insuredPessangers[index].insuredFlights[flightKey]);
+
        //Get the already insured pessanger and add the flight key to list of insured flights.
-       require(insuredPessangers[index].insuredFlights[flightKey] != 0,"Pessanger has already insured this flight");
+       require(insuredPessangers[index].insuredFlights[flightKey] == 0,"Pessanger has already insured this flight");
        insuredPessangers[index].insuredFlights[flightKey] = insuredAmount;
+
+       emit  ExistingPessangerNewFlightInsurence(pessangerAddress);
+
     }else{
         //Add new entry to insured pessanger.
         insuredPessangers.push(
@@ -317,13 +330,15 @@ contract FlightSuretyData {
 
         totalAvailableFunds = totalAvailableFunds.add(insuredAmount); 
 
+        emit  buyInsurenceDataSaved(flightKey,insuredPessangers.length,totalAvailableFunds);
+
     }
 
 
     function pessangerInsured(address pessangerAddress) internal returns(uint256 insuredPessangerIndex)
     {
         //Initialize to index not found
-        insuredPessangerIndex = uint256(-1);
+        insuredPessangerIndex = 999;
 
 
         for (uint i=0; i<insuredPessangers.length; i++) {

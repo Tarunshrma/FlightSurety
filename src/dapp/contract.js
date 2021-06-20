@@ -93,7 +93,7 @@ export default class Contract {
         const insuredAmountInWei = this.web3.utils.toWei(amount, 'ether');
         self.flightSuretyApp.methods
             .buyInsurence(flightName,airlineAddress,timestamp)
-            .send({ from: self.owner,  gas: self.config.gas, value : insuredAmountInWei}, callback);
+            .send({ from: "0x5cf6BB79F58cC60420177c372Ea379c1f8C238A5",  gas: self.config.gas, value : insuredAmountInWei}, callback);
     }
 
     fetchFlightStatus(flight, callback) {

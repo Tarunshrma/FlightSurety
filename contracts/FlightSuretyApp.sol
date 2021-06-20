@@ -283,6 +283,7 @@ contract FlightSuretyApp {
         require(msg.value < 1 ether, "Provide less then 1 ether.");
 
        bytes32 flightKey = getFlightKey(airlineAddress,flightName,timestamp);
+
        flightSuretyData.buy(flightKey, msg.sender, msg.value);
 
        emit InsurencePurchased(flightName,msg.value);
