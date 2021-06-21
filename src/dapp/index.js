@@ -105,7 +105,13 @@ import './flightsurety.css';
 
             // Write transaction
             contract.checkPessangerBalance(pessangerAddress, (error, result) => {
-                DOM.elid('passanger-balance').text  = result.balance;
+                if(error){
+                    console.log(error);
+                    alert(error);
+                }else{
+                    DOM.elid('passanger-balance').innerText  = result + ' ether';
+                }
+                
             });
         })
 
@@ -113,16 +119,15 @@ import './flightsurety.css';
             let pessangerAddress = DOM.elid('passanger-address').value;
 
             contract.withdrawBalance(pessangerAddress, (error, result) => {
-                display('Withdraw Done', 'Press Check Balance to view updated balance', result);
+                if(error){
+                    console.log(error);
+                    alert(error);
+                }else{
+                    alert("Withdrawal Succesfully: " + result);
+                }
             });
-
-        }
-
-        
-    
+        });
     });
-    
-
 })();
 
 

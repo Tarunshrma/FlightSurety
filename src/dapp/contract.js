@@ -13,6 +13,8 @@ export default class Contract {
         this.owner = null;
         this.airlines = [];
         this.passengers = [];
+
+        this.pessangerAddress = "0xB8757EE0CAC014144e2dA659735309040A433327";
     }
 
     async initialize(callback) {
@@ -93,7 +95,7 @@ export default class Contract {
         const insuredAmountInWei = this.web3.utils.toWei(amount, 'ether');
         self.flightSuretyApp.methods
             .buyInsurence(flightName,airlineAddress,timestamp)
-            .send({ from: "0xB48EF02B100b1C542d5bc6FbfdE8F2E2c7F6120C",  gas: self.config.gas, value : insuredAmountInWei}, callback);
+            .send({ from: self.pessangerAddress,  gas: self.config.gas, value : insuredAmountInWei}, callback);
     }
 
     fetchFlightStatus(flightName,airlineAddress,timestamp, callback) {
@@ -105,14 +107,18 @@ export default class Contract {
         } 
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
-            .send({ from: "0xB48EF02B100b1C542d5bc6FbfdE8F2E2c7F6120C"}, (error, result) => {
+            .send({ from: self.pessangerAddress}, (error, result) => {
                 callback(error, payload);
             });
     }
 
     checkPessangerBalance(pessangerAddress, callback) {
-        var balance = web3.eth.getBalance(pessangerAddress);
-        return balance;
+        let self = this;
+
+        self.web3.eth.getBalance(pessangerAddress, (error,result) => {
+            var balance = self.web3.utils.fromWei(result, 'ether');
+            callback(error, balance);
+        });
     }
 
     withdrawBalance(pessangerAddress, callback) {
@@ -121,7 +127,7 @@ export default class Contract {
         self.flightSuretyApp.methods
             .withdrawBalance(pessangerAddress)
             .send({ from: pessangerAddress}, (error, result) => {
-                callback(error, payload);
+                callback(error, result);
             });
     }
 }

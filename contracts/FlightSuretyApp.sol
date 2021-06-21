@@ -30,7 +30,7 @@ contract FlightSuretyData{
 
     function creditInsurees(bytes32 flightKey) external;
 
-    function withdrawCreditedAmount(address pessangerAddress) external;
+    function withdrawCreditedAmount(address pessangerAddress) external returns(uint256);
 
     function getRegisteredAirlinesCount() view public returns(uint256);
 
@@ -345,9 +345,9 @@ contract FlightSuretyApp {
 
     function withdrawBalance(address pessangerAddress) external{
         require(pessangerAddress != address(0), "Provide valid address.");
-        flightSuretyData.withdrawCreditedAmount(pessangerAddress);
+        uint256 creditAmount = flightSuretyData.withdrawCreditedAmount(pessangerAddress);
 
-        emit AmountWithdrawn(pessangerAddress, insuredPessangers[index].claimAmount);
+        emit AmountWithdrawn(pessangerAddress, creditAmount);
     }
 
 

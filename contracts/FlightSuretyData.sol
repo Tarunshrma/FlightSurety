@@ -376,14 +376,17 @@ contract FlightSuretyData {
 
     }
 
-    function withdrawCreditedAmount(address pessangerAddress) external{
+    function withdrawCreditedAmount(address pessangerAddress) external  payable returns(uint256){
         uint256 index = pessangerInsured(pessangerAddress);
-        
-        require(index != 999,"Provided address is in records.. Please check insurence is purchased.");
-        require(insuredPessangers[index].claimAmount > 0,"Pessanger does not have sufficient balance to withdraw");
+        uint256 creditAmount = insuredPessangers[index].claimAmount;
 
-        pessangerAddress.transfer(insuredPessangers[index].claimAmount); 
+        require(index != 999,"Provided address is in records.. Please check insurence is purchased.");
+        require(creditAmount > 0,"Pessanger does not have sufficient balance to withdraw");
+
+        pessangerAddress.transfer(creditAmount); 
         insuredPessangers[index].claimAmount = 0;
+
+        return creditAmount;
        
     }
     

@@ -47,7 +47,7 @@ async function submitOracleResponse(airline, flight, timestamp) {
           indexes[j], airline, flight, timestamp, statusCode
         ).send({from: oracles[i], gas: config.gas});
       } catch(e) {
-        console.log(e);
+        //console.log(e);
       }
     }
   }
