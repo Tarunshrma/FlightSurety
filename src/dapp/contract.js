@@ -93,7 +93,7 @@ export default class Contract {
         const insuredAmountInWei = this.web3.utils.toWei(amount, 'ether');
         self.flightSuretyApp.methods
             .buyInsurence(flightName,airlineAddress,timestamp)
-            .send({ from: "0x5cf6BB79F58cC60420177c372Ea379c1f8C238A5",  gas: self.config.gas, value : insuredAmountInWei}, callback);
+            .send({ from: "0xB48EF02B100b1C542d5bc6FbfdE8F2E2c7F6120C",  gas: self.config.gas, value : insuredAmountInWei}, callback);
     }
 
     fetchFlightStatus(flightName,airlineAddress,timestamp, callback) {
@@ -105,7 +105,22 @@ export default class Contract {
         } 
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
-            .send({ from: self.owner}, (error, result) => {
+            .send({ from: "0xB48EF02B100b1C542d5bc6FbfdE8F2E2c7F6120C"}, (error, result) => {
+                callback(error, payload);
+            });
+    }
+
+    checkPessangerBalance(pessangerAddress, callback) {
+        var balance = web3.eth.getBalance(pessangerAddress);
+        return balance;
+    }
+
+    withdrawBalance(pessangerAddress, callback) {
+        let self = this;
+
+        self.flightSuretyApp.methods
+            .withdrawBalance(pessangerAddress)
+            .send({ from: pessangerAddress}, (error, result) => {
                 callback(error, payload);
             });
     }

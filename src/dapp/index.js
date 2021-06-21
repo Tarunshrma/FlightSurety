@@ -100,6 +100,24 @@ import './flightsurety.css';
             });
         })
 
+        DOM.elid('check-balance').addEventListener('click', () => {
+            let pessangerAddress = DOM.elid('passanger-address').value;
+
+            // Write transaction
+            contract.checkPessangerBalance(pessangerAddress, (error, result) => {
+                DOM.elid('passanger-balance').text  = result.balance;
+            });
+        })
+
+        DOM.elid('withdraw-balance').addEventListener('click', () => {
+            let pessangerAddress = DOM.elid('passanger-address').value;
+
+            contract.withdrawBalance(pessangerAddress, (error, result) => {
+                display('Withdraw Done', 'Press Check Balance to view updated balance', result);
+            });
+
+        }
+
         
     
     });

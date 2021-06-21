@@ -28,10 +28,9 @@ contract FlightSuretyData{
 
     function buy(bytes32 flightKey, address pessangerAddress, uint256 insuredAmount) external;
 
-    //function creditInsurees() external;
+    function creditInsurees(bytes32 flightKey) external;
 
-    //function pay() external;
-
+    function withdrawCreditedAmount(address pessangerAddress) external;
 
     function getRegisteredAirlinesCount() view public returns(uint256);
 
@@ -84,6 +83,10 @@ contract FlightSuretyApp {
    event AirlineVoted(address airlineAddress, uint256 voteCount);
 
    event InsurencePurchased(string flightName, uint256 amount);
+
+   event FlightDelayed(string flightName);
+
+   event AmountWithdrawn(address pessangerAddress, uint256 claimAmount);
     /********************************************************************************************/
     /*                                       FUNCTION MODIFIERS                                 */
     /********************************************************************************************/
@@ -295,37 +298,57 @@ contract FlightSuretyApp {
     */  
     function processFlightStatus
                                 (
-                                    address airline,
-                                    string memory flight,
+                                    address airlineAddress,
+                                    string memory flightName,
                                     uint256 timestamp,
                                     uint8 statusCode
                                 )
                                 internal
-                                pure
     {
+        //If flight is delayed due to airline fault.. then credit the insuree with 1.5 of original amount.
+        if(statusCode == STATUS_CODE_LATE_AIRLINE)
+        {
+            emit FlightDelayed(flightName);
+
+            bytes32 flightKey = getFlightKey(airlineAddress,flightName,timestamp);
+            flightSuretyData.creditInsurees(flightKey);
+
+
+        }
+
+
     }
 
 
     // Generate a request for oracles to fetch flight information
     function fetchFlightStatus
                         (
-                            address airline,
+                            address airlineAddress,
                             string flight,
                             uint256 timestamp                            
                         )
                         external
     {
+        require(flightSuretyData.isRegisteredAirline(airlineAddress), "Airline is not registered");
+
         uint8 index = getRandomIndex(msg.sender);
 
         // Generate a unique key for storing the request
-        bytes32 key = keccak256(abi.encodePacked(index, airline, flight, timestamp));
+        bytes32 key = keccak256(abi.encodePacked(index, airlineAddress, flight, timestamp));
         oracleResponses[key] = ResponseInfo({
                                                 requester: msg.sender,
                                                 isOpen: true
                                             });
 
-        emit OracleRequest(index, airline, flight, timestamp);
-    } 
+        emit OracleRequest(index, airlineAddress, flight, timestamp);
+    }
+
+    function withdrawBalance(address pessangerAddress) external{
+        require(pessangerAddress != address(0), "Provide valid address.");
+        flightSuretyData.withdrawCreditedAmount(pessangerAddress);
+
+        emit AmountWithdrawn(pessangerAddress, insuredPessangers[index].claimAmount);
+    }
 
 
 // region ORACLE MANAGEMENT
@@ -438,6 +461,19 @@ contract FlightSuretyApp {
             processFlightStatus(airline, flight, timestamp, statusCode);
         }
     }
+
+    // function checkBalance
+    //                         (
+    //                             address pessangerAddress
+    //                         )
+    //                         view
+    //                         external
+    //                         returns(uint256)
+    // {
+    //     require(pessangerAddress != address(0), "Provide valid pessanger address");
+
+        
+    // }
 
 
     function getFlightKey

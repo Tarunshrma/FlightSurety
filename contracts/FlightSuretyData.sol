@@ -63,7 +63,9 @@ contract FlightSuretyData {
 
     event  ExistingPessangerCheckIfFlightAlreadyInsured(address pessangerAddress,uint256 index,uint256 insuredFlightAmount);
 
-    event  ExistingPessangerNewFlightInsurence(address pessangerAddress);   
+    event  ExistingPessangerNewFlightInsurence(address pessangerAddress);
+
+    event AmountCreditedToPessangerForDelayedFlight(address pessangerAddress,uint256 orginalInsurenceAmount,uint256 claimAmount);   
 
     /**
     * @dev Constructor
@@ -283,11 +285,6 @@ contract FlightSuretyData {
          totalAvailableFunds = totalAvailableFunds.add(amount); //Add the fund to pool of funds 
     }
 
-
- address pessangerAddress; //Pessanger Address
-        uint256 insurenceAmount; //Original amount on stake for insurence
-        uint256 claimAmount;
-
    /**
     * @dev Buy insurance for a flight
     *
@@ -353,16 +350,42 @@ contract FlightSuretyData {
         return (insuredPessangerIndex);
     }
 
+
     /**
      *  @dev Credits payouts to insurees
     */
-    // function creditInsurees
-    //                             (
-    //                             )
-    //                             external
-    //                             pure
-    // {
-    // }
+    function creditInsurees
+                                (
+                                    bytes32 flightKey
+                                )
+                                external
+    {
+    //Check if flight is already purchased by this pessanger, if yes then revert the transation
+        for (uint i=0; i<insuredPessangers.length; i++) {
+            if(insuredPessangers[i].insuredFlights[flightKey] > 0){
+                uint256 orginalInsurenceAmount = insuredPessangers[i].insuredFlights[flightKey];
+
+                //Credit pessanger account with 2x of original insurence amount on stake
+                insuredPessangers[i].claimAmount = insuredPessangers[i].claimAmount.add(orginalInsurenceAmount.mul(2));
+                
+                emit  AmountCreditedToPessangerForDelayedFlight(insuredPessangers[i].pessangerAddress,orginalInsurenceAmount,insuredPessangers[i].claimAmount);
+            }
+
+        }
+
+
+    }
+
+    function withdrawCreditedAmount(address pessangerAddress) external{
+        uint256 index = pessangerInsured(pessangerAddress);
+        
+        require(index != 999,"Provided address is in records.. Please check insurence is purchased.");
+        require(insuredPessangers[index].claimAmount > 0,"Pessanger does not have sufficient balance to withdraw");
+
+        pessangerAddress.transfer(insuredPessangers[index].claimAmount); 
+        insuredPessangers[index].claimAmount = 0;
+       
+    }
     
 
     /**

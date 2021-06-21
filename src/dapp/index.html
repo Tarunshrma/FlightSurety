@@ -43,7 +43,7 @@
         </div> -->
     </main>
 
-    <main class="container" class="top-60">
+    <main class="container" class="top-20">
         <label>Insure Flight</label>
         <div id="display-wrapper" class="top-20"/>
         </div>
@@ -55,6 +55,19 @@
             <input type="text" id="insurence-amount" placeholder="Should be less then 1 ether">
             <btn class="btn btn-primary" id="submit-flight-insurence">Buy</btn>
             <btn class="btn btn-primary" id="submit-oracle">Fetch Flight Status</btn>
+        </div>
+    </main>
+
+    <main class="container" class="top-20">
+        <label>Pessanger Details</label>
+        <div id="display-wrapper" class="top-20"/>
+        </div>
+        <div class="row top-20">
+            <label class="form">Check Balance</label>
+            <input type="text" id="passanger-address" placeholder="Address">
+            <label class="form" id="passanger-balance">0 ether</label>
+            <btn class="btn btn-primary" id="check-balance" >Check Balance</btn>
+            <btn class="btn btn-primary" id="withdraw-balance" style="margin-left: 10px;"">Withdraw</btn>
         </div>
     </main>
     
