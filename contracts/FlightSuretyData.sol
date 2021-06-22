@@ -278,6 +278,7 @@ contract FlightSuretyData {
                                 uint256 amount
                             ) 
                             external
+                            payable
                             //requireAuthorizeContract(msg.sender)
                             requireIsOperational
     {
@@ -296,6 +297,7 @@ contract FlightSuretyData {
                                 uint256 insuredAmount                           
                             )
                             external
+                            payable
                             requireIsOperational
                             //requireAuthorizeContract(msg.sender)
     {
@@ -397,11 +399,11 @@ contract FlightSuretyData {
 
         pessangerAddress.transfer(creditAmount);
 
-        emit withdrawCreditedAmountEvent(400);
+        emit withdrawCreditedAmountEvent(insuredPessangers[index].claimAmount);
 
         insuredPessangers[index].claimAmount = 0;
 
-        emit withdrawCreditedAmountEvent(404);
+        emit withdrawCreditedAmountEvent(insuredPessangers[index].claimAmount);
 
         return creditAmount;
        

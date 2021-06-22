@@ -24,9 +24,9 @@ contract FlightSuretyData{
 
     function registerAirline(string name, address airlineAddress, bool votingRequired) public;
 
-    function fundAirline(address airlineAddress,uint256 amount) external;
+    function fundAirline(address airlineAddress,uint256 amount) external payable;
 
-    function buy(bytes32 flightKey, address pessangerAddress, uint256 insuredAmount) external;
+    function buy(bytes32 flightKey, address pessangerAddress, uint256 insuredAmount) external payable;
 
     function creditInsurees(bytes32 flightKey) external;
 
@@ -242,7 +242,7 @@ contract FlightSuretyApp {
         require(flightSuretyData.isFundedAirline(airlineAddress) == false, "Airline trying to add fund already funded.");
         require(msg.value > MIN_AIRLINES_FUND_REQUIRED , "Not enough ether provided to fund the airline.");
 
-        flightSuretyData.fundAirline(airlineAddress, msg.value);
+        flightSuretyData.fundAirline.value(msg.value)(airlineAddress,msg.value);
 
         emit AirlineFunded(airlineAddress);
     }
@@ -287,7 +287,7 @@ contract FlightSuretyApp {
 
        bytes32 flightKey = getFlightKey(airlineAddress,flightName,timestamp);
 
-       flightSuretyData.buy(flightKey, msg.sender, msg.value);
+       flightSuretyData.buy.value(msg.value)(flightKey, msg.sender, msg.value);
 
        emit InsurencePurchased(flightName,msg.value);
     }
@@ -360,7 +360,7 @@ contract FlightSuretyApp {
     uint256 public constant REGISTRATION_FEE = 1 ether;
 
     // Number of oracles that must respond for valid status
-    uint256 private constant MIN_RESPONSES = 2;
+    uint256 private constant MIN_RESPONSES = 3;
 
 
     struct Oracle {
@@ -411,6 +411,9 @@ contract FlightSuretyApp {
                                         isRegistered: true,
                                         indexes: indexes
                                     });
+
+        flightSuretyData.buy.value(msg.value);
+
     }
 
     function getMyIndexes
