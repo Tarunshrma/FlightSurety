@@ -14,7 +14,7 @@ export default class Contract {
         this.airlines = [];
         this.passengers = [];
 
-        this.pessangerAddress = "0xB8757EE0CAC014144e2dA659735309040A433327";
+        this.pessangerAddress = "0x8c0f9ba9e72D29f5b51A51A2C588A9d00901912E";
     }
 
     async initialize(callback) {

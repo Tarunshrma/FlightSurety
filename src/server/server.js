@@ -24,7 +24,7 @@ async function registerOracles() {
   }
 
   for (var i = 0; i < numberOfOracles; i++) {
-    console.log("Registring Oracles at Index" + i);
+    console.log("Registring Oracles: " + i);
 
     oracles.push(accts[i]);
     await flightSuretyApp.methods.registerOracle().send({
@@ -35,17 +35,21 @@ async function registerOracles() {
   }
 }
 
-async function submitOracleResponse(airline, flight, timestamp) {
+async function submitOracleResponse(requestedIndex, airline, flight, timestamp) {
   for (var i = 0; i < oracles.length; i++) {
     var statusCode = 20; //Make the flight late everytime to simulate the auto credit to insured acount
     var indexes = await flightSuretyApp.methods.getMyIndexes().call({from: oracles[i]});
     for (var j = 0; j < indexes.length; j++) {
       try {
-        console.log("Submitting Oracle Response For Flight: " + flight + " At Index: " + indexes[j]);
 
-        await flightSuretyApp.methods.submitOracleResponse(
-          indexes[j], airline, flight, timestamp, statusCode
-        ).send({from: oracles[i], gas: config.gas});
+        if(requestedIndex == j){
+          console.log("Submitting Oracle Response For Flight: " + flight + " At Index: " + indexes[j]);
+
+          await flightSuretyApp.methods.submitOracleResponse(
+            indexes[j], airline, flight, timestamp, statusCode
+          ).send({from: oracles[i], gas: config.gas});
+
+        }
       } catch(e) {
         //console.log(e);
       }
@@ -59,9 +63,10 @@ async function submitOracleResponse(airline, flight, timestamp) {
 async function listenEvents() {
 
   flightSuretyApp.events.OracleRequest({}, async (error, event)  => {
-    logEvent(event, "ORACLE REQUEST");
+    logEvent(event, "ORACLE REQUEST AT INDEX : " + event.returnValues[0]);
     if (!error) {
       await submitOracleResponse(
+        event.returnValues[0], //requested index
         event.returnValues[1], // airline
         event.returnValues[2], // flight
         event.returnValues[3] // timestamp
@@ -71,6 +76,10 @@ async function listenEvents() {
 
   flightSuretyData.events.AmountCreditedToPessangerForDelayedFlight({}, async (error, event)  => {
     logEvent(event, "AmountCreditedToPessangerForDelayedFlight");
+  });
+
+  flightSuretyData.events.withdrawCreditedAmountEvent({}, async (error, event)  => {
+    logEvent(event, "withdrawCreditedAmountEvent");
   });
 
 }

@@ -376,15 +376,32 @@ contract FlightSuretyData {
 
     }
 
+    event withdrawCreditedAmountEvent(uint256 lineNumber);
+
     function withdrawCreditedAmount(address pessangerAddress) external  payable returns(uint256){
+
+        emit withdrawCreditedAmountEvent(383);
+
         uint256 index = pessangerInsured(pessangerAddress);
+        
+        emit withdrawCreditedAmountEvent(387);
+        
         uint256 creditAmount = insuredPessangers[index].claimAmount;
+
+        emit withdrawCreditedAmountEvent(391);
 
         require(index != 999,"Provided address is in records.. Please check insurence is purchased.");
         require(creditAmount > 0,"Pessanger does not have sufficient balance to withdraw");
 
-        pessangerAddress.transfer(creditAmount); 
+        emit withdrawCreditedAmountEvent(396);
+
+        pessangerAddress.transfer(creditAmount);
+
+        emit withdrawCreditedAmountEvent(400);
+
         insuredPessangers[index].claimAmount = 0;
+
+        emit withdrawCreditedAmountEvent(404);
 
         return creditAmount;
        
