@@ -7,7 +7,7 @@ contract('Flight Surety Tests', async (accounts) => {
   var config;
   before('setup contract', async () => {
     config = await Test.Config(accounts);
-    await config.flightSuretyData.authorizeCaller(config.flightSuretyApp.address);
+    await config.flightSuretyData.setAuthorizeContract(config.flightSuretyApp.address);
   });
 
   /****************************************************************************************/
@@ -83,12 +83,122 @@ contract('Flight Surety Tests', async (accounts) => {
     catch(e) {
 
     }
-    let result = await config.flightSuretyData.isAirline.call(newAirline); 
+    let result = await config.flightSuretyApp.isAirlineRegistered(newAirline); 
 
     // ASSERT
     assert.equal(result, false, "Airline should not be able to register another airline if it hasn't provided funding");
 
   });
+
+  it('Airline can not be funded with less then 10 ether', async () => {
+    
+    // ARRANGE
+    const fee = web3.utils.toWei('9',"ether");
+
+    // ACT
+    try {
+        await config.flightSuretyApp.fundAirline(config.owner,{ from: config.owner, value: fee});
+    }
+    catch(e) {
+
+    }
+    let result = await config.flightSuretyData.isFundedAirline(config.owner); 
+
+    // ASSERT
+    assert.equal(result, false);
+
+  });
+
+  it('Airline can be funded with 10 or more ether only', async () => {
+    
+    // ARRANGE
+    const fee = web3.utils.toWei('10',"ether");
+
+    // ACT
+    try {
+        await config.flightSuretyApp.fundAirline(config.owner,{ from: config.owner, value: fee});
+    }
+    catch(e) {
+
+    }
+    let result = await config.flightSuretyData.isFundedAirline(config.owner); 
+
+    // ASSERT
+    assert.equal(result, true);
+
+  });
  
+
+  it('Funded Airline can register other airline', async () => {
+    
+    // ARRANGE
+    const secondAirline = config.testAddresses[2];
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline("Indigo Airlines",secondAirline,{from: config.owner, gas: 6721900});
+    }
+    catch(e) {
+console.log(e);
+    }
+    
+    let result = await config.flightSuretyApp.isAirlineRegistered.call(secondAirline); 
+    // ASSERT
+    assert.equal(result, true);
+
+  });
+
+  it('If registered Airlines are 4, then further airline registration require voting.', async () => {
+    
+    // ARRANGE
+    const thirdAirline = config.testAddresses[3];
+    const fourthAirline = config.testAddresses[4];
+    const fifthAirline = config.testAddresses[5];
+
+    // ACT
+    try {
+        await config.flightSuretyApp.registerAirline("Indigo Airlines",thirdAirline,{from: config.owner, gas: 6721900});
+        await config.flightSuretyApp.registerAirline("Indigo Airlines",fourthAirline,{from: config.owner, gas: 6721900});
+        await config.flightSuretyApp.registerAirline("Indigo Airlines",fifthAirline,{from: config.owner, gas: 6721900});
+    }
+    catch(e) {
+         console.log(e);
+    }
+    
+    let resultthirdAirline = await config.flightSuretyApp.isAirlineRegistered.call(thirdAirline); 
+    let resultFourthAirline = await config.flightSuretyApp.isAirlineRegistered.call(fourthAirline); 
+    let resultFifthAirline = await config.flightSuretyApp.isAirlineRegistered.call(fifthAirline); 
+    
+    
+    // ASSERT
+    assert.equal(resultthirdAirline, true, "Third Airline Registered Succesfully.");
+    assert.equal(resultFourthAirline, true, "Fourth Airline Registered Succesfully.");
+    assert.equal(resultFifthAirline, false, "Fifth airline should not registered and would require voting.");
+
+  });
+
+  it('Fifth airline waiting to be registered require atleast 2 votes to be registred', async () => {
+    
+    // ARRANGE
+    const thirdAirline = config.testAddresses[3];
+    const fifthAirline = config.testAddresses[5];
+    
+    const fee = web3.utils.toWei('10',"ether");
+
+    // ACT
+    try {
+      //Fund second airline first to participate in voting
+        await config.flightSuretyApp.fundAirline(thirdAirline,{ from: thirdAirline, value: fee, gas: 6721900});
+        await config.flightSuretyApp.voteAirline(fifthAirline,{from: thirdAirline, gas: 6721900});
+    }
+    catch(e) {
+       console.log(e);
+    }
+    
+    let resultFifthAirline = await config.flightSuretyApp.isAirlineRegistered.call(fifthAirline);
+    // ASSERT
+    assert.equal(resultFifthAirline, true, "Fifth airline should be registsred after enough vote recieved.");
+
+  });
 
 });

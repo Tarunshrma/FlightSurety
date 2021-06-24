@@ -7,14 +7,15 @@ export default class Contract {
     constructor(network, callback) {
 
         this.config = Config[network];
-        this.web3 = new Web3(new Web3.providers.HttpProvider(this.config.url));
+        //this.web3 = new Web3(new Web3.providers.HttpProvider(this.config.url));
+        this.web3 = new Web3(window.ethereum);
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, this.config.appAddress);
         this.initialize(callback);
         this.owner = null;
         this.airlines = [];
         this.passengers = [];
 
-        this.pessangerAddress = "0xB03eA7c22328456f3F4cD4094d66AB8Ba3a11D82";
+        this.pessangerAddress = "0x4633c0B6dc10592494dbFBCC7D34993163E21353";
     }
 
     async initialize(callback) {

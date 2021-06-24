@@ -64,7 +64,7 @@ contract FlightSuretyApp {
 
     string constant private DEFAULT_AIRLINES = "Indian Airlines"; 
     uint256 constant private MIN_AIRLINES_COUNT = 4; 
-    uint8 constant private MIN_AIRLINES_FUND_REQUIRED = 10; 
+    uint256 constant private MIN_AIRLINES_FUND_REQUIRED = 10 ether; 
 
     address private contractOwner;          // Account used to deploy contract
     FlightSuretyData private  flightSuretyData;
@@ -240,7 +240,7 @@ contract FlightSuretyApp {
         //if both conditions meet i.e. already registsred and not funded then check for min. fund required.
         require(flightSuretyData.isRegisteredAirline(airlineAddress), "Airline trying to fund is not registered.");
         require(flightSuretyData.isFundedAirline(airlineAddress) == false, "Airline trying to add fund already funded.");
-        require(msg.value > MIN_AIRLINES_FUND_REQUIRED , "Not enough ether provided to fund the airline.");
+        require(msg.value >= MIN_AIRLINES_FUND_REQUIRED , "Not enough ether provided to fund the airline.");
 
         flightSuretyData.fundAirline.value(msg.value)(airlineAddress,msg.value);
 
@@ -539,5 +539,11 @@ contract FlightSuretyApp {
     }
 
 // endregion
+
+// region Unit Testing Helpers
+function isAirlineRegistered(address airlineAddress) external view returns(bool){
+    return flightSuretyData.isRegisteredAirline(airlineAddress);
+}
+//endregion
 
 }   
