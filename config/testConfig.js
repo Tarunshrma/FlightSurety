@@ -7,7 +7,7 @@ var Config = async function(accounts) {
     
     // These test addresses are useful when you need to add
     // multiple users in test scripts
-    let testAddresses = [
+    /*let testAddresses = [
         "0x17418c93c5ee7fbbb04eb57f1e5a92b493aadcd0",
         "0x0a80df5e588e95434d5d89a6f15f80599ac6a062",
         "0xc01b46cb763aeb3c3dc39357dfaecaf676d402fe",
@@ -18,7 +18,9 @@ var Config = async function(accounts) {
         "0x324792267a2214b6dc7141482db15f65c25bcde9",
         "0x6089ead5a9e754925c377666576854520da331dc",
         "0x293b85d27bc3ca387a4f0ca8c413a041c44c42d8"
-    ];
+    ];*/
+
+    let testAddresses = accounts;
 
 
     let owner = accounts[0];

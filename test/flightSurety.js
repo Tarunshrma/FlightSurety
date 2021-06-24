@@ -116,10 +116,10 @@ contract('Flight Surety Tests', async (accounts) => {
 
     // ACT
     try {
-        await config.flightSuretyApp.fundAirline(config.owner,{ from: config.owner, value: fee});
+        await config.flightSuretyApp.fundAirline(config.owner,{ from: config.owner, value: fee, gas: 6721900});
     }
     catch(e) {
-
+console.log(e);
     }
     let result = await config.flightSuretyData.isFundedAirline(config.owner); 
 
@@ -129,6 +129,7 @@ contract('Flight Surety Tests', async (accounts) => {
   });
  
 
+  
   it('Funded Airline can register other airline', async () => {
     
     // ARRANGE
@@ -200,5 +201,31 @@ console.log(e);
     assert.equal(resultFifthAirline, true, "Fifth airline should be registsred after enough vote recieved.");
 
   });
+
+  it('(Purchase insurence), Pessanger can purchase insurence by paying anything but less then 1 ether', async () => {
+    
+    // ARRANGE
+    var error = false;
+    
+    const insurenceAmount = web3.utils.toWei('0.5',"ether");
+    const flightName = "Indian Airlines";
+    const timeStamp = 20210624;
+    const pessangerAddress = config.testAddresses[6];
+
+    // ACT
+    try {
+      //Fund second airline first to participate in voting
+        await config.flightSuretyApp.buyInsurence(flightName,config.owner,timeStamp,{ from: pessangerAddress, value: insurenceAmount, gas: 6721900});
+    }
+    catch(e) {
+       console.log(e);
+       error = true;
+    }
+    
+    // ASSERT
+    assert.equal(error, false, "Pessanger should be able to buy insurence for registered airline.");
+
+  });
+  
 
 });
