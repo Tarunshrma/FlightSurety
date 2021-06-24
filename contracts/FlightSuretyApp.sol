@@ -6,8 +6,6 @@ pragma solidity ^0.4.25;
 
 import "../node_modules/openzeppelin-solidity/contracts/math/SafeMath.sol";
 
-
-
 /************************************************** */
 /* Interface for data contract                      */
 /************************************************** */
@@ -220,7 +218,7 @@ contract FlightSuretyApp {
       //Add airline to queue for voting.
       flightSuretyData.addAirlineToRegistrationQueue(airlineName,airlineAddress);
       emit AirlinePendingVoting(airlineAddress);
-        return (false);
+      return (false);
     }
 
     /** 
@@ -466,20 +464,6 @@ contract FlightSuretyApp {
             oracleResponses[key].isOpen = false;
         }
     }
-
-    // function checkBalance
-    //                         (
-    //                             address pessangerAddress
-    //                         )
-    //                         view
-    //                         external
-    //                         returns(uint256)
-    // {
-    //     require(pessangerAddress != address(0), "Provide valid pessanger address");
-
-        
-    // }
-
 
     function getFlightKey
                         (

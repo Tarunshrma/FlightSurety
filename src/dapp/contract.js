@@ -7,35 +7,18 @@ export default class Contract {
     constructor(network, callback) {
 
         this.config = Config[network];
-        //this.web3 = new Web3(new Web3.providers.HttpProvider(this.config.url));
-        this.web3 = new Web3(window.ethereum);
+        this.web3 = new Web3(new Web3.providers.HttpProvider(this.config.url));
+        //this.web3 = new Web3(window.ethereum);
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, this.config.appAddress);
         this.initialize(callback);
         this.owner = null;
         this.airlines = [];
         this.passengers = [];
 
-        this.pessangerAddress = "0x4633c0B6dc10592494dbFBCC7D34993163E21353";
+        this.pessangerAddress = null;
     }
 
     async initialize(callback) {
-        // this.web3.eth.getAccounts((error, accts) => {
-           
-        //     this.owner = accts[0];
-
-        //     let counter = 1;
-            
-        //     while(this.airlines.length < 5) {
-        //         this.airlines.push(accts[counter++]);
-        //     }
-
-        //     while(this.passengers.length < 5) {
-        //         this.passengers.push(accts[counter++]);
-        //     }
-
-        //     callback();
-        // });
-
         if (window.ethereum) {
             self.web3Provider = window.ethereum;
             try {
@@ -57,9 +40,15 @@ export default class Contract {
         
         this.web3.eth.getAccounts((error, accts) => {
             this.owner = accts[0];
+            this.pessangerAddress = accts[9];
             callback();
         });
        
+    }
+
+    async getCurrentAccount(){
+        var accountsOnEnable = await ethereum.request({method: 'eth_requestAccounts'});
+        return accountsOnEnable;
     }
 
     isOperational(callback) {
@@ -96,7 +85,7 @@ export default class Contract {
         const insuredAmountInWei = this.web3.utils.toWei(amount, 'ether');
         self.flightSuretyApp.methods
             .buyInsurence(flightName,airlineAddress,timestamp)
-            .send({ from: self.pessangerAddress,  gas: self.config.gas, value : insuredAmountInWei}, callback);
+            .send({ from: self.owner,  gas: self.config.gas, value : insuredAmountInWei}, callback);
     }
 
     fetchFlightStatus(flightName,airlineAddress,timestamp, callback) {
@@ -108,7 +97,7 @@ export default class Contract {
         } 
         self.flightSuretyApp.methods
             .fetchFlightStatus(payload.airline, payload.flight, payload.timestamp)
-            .send({ from: self.pessangerAddress}, (error, result) => {
+            .send({ from: self.owner}, (error, result) => {
                 callback(error, payload);
             });
     }
@@ -127,7 +116,7 @@ export default class Contract {
 
         self.flightSuretyApp.methods
             .withdrawBalance(pessangerAddress)
-            .send({ from: pessangerAddress}, (error, result) => {
+            .send({ from: self.owner}, (error, result) => {
                 callback(error, result);
             });
     }

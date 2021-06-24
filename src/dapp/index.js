@@ -24,7 +24,7 @@ import './flightsurety.css';
             contract.registerAirline(airlineName,airlineAddress, (error, result) => {
                 if(error){
                     console.log(error);
-                    alert(error);
+                    processandDisplayError(error);
                 }else{
                     console.log("Airline Registerd sucessfully..");
                     alert("Airline Registerd sucessfully..");
@@ -41,7 +41,7 @@ import './flightsurety.css';
             contract.fundAirline(airlineAddress, (error, result) => {
                 if(error){
                     console.log(error);
-                    alert(error);
+                    processandDisplayError(error);
                 }else{
                     console.log("Airline funded sucessfully..");
                     alert("Airline funded sucessfully..");
@@ -58,7 +58,7 @@ import './flightsurety.css';
             contract.voteAirline(airlineAddress, (error, result) => {
                 if(error){
                     console.log(error);
-                    alert(error);
+                    processandDisplayError(error);
                 }else{
                     console.log("Airline voted sucessfully.." + result);
                     alert("Airline vote sucessfully: " + result);
@@ -78,7 +78,7 @@ import './flightsurety.css';
             contract.buyInsurence(flightName,airlineAddress,timestamp,insuredAmount, (error, result) => {
                 if(error){
                     console.log(error);
-                    alert(error);
+                    processandDisplayError(error.message);
                 }else{
                     console.log("Flight Insured Succesfully" + result);
                     alert("Flight Insured Succesfully: " + result);
@@ -107,7 +107,7 @@ import './flightsurety.css';
             contract.checkPessangerBalance(pessangerAddress, (error, result) => {
                 if(error){
                     console.log(error);
-                    alert(error);
+                    processandDisplayError(error);
                 }else{
                     DOM.elid('passanger-balance').innerText  = result + ' ether';
                 }
@@ -121,13 +121,23 @@ import './flightsurety.css';
             contract.withdrawBalance(pessangerAddress, (error, result) => {
                 if(error){
                     console.log(error);
-                    alert(error);
+                    processandDisplayError(error);
                 }else{
                     alert("Withdrawal Succesfully: " + result);
                 }
             });
         });
     });
+
+    function processandDisplayError(errorMessage){
+        try{
+            let err = errorMessage.replace("Error: [ethjs-query] while formatting outputs from RPC '","").replace("'","");
+            let objError = JSON.parse(err);
+            alert(objError.value.data.message);
+        }catch{
+            alert(errorMessage);
+        }
+    }
 })();
 
 

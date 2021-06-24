@@ -39,10 +39,11 @@ async function submitOracleResponse(requestedIndex, airline, flight, timestamp) 
   for (var i = 0; i < oracles.length; i++) {
     var statusCode = 20; //Make the flight late everytime to simulate the auto credit to insured acount
     var indexes = await flightSuretyApp.methods.getMyIndexes().call({from: oracles[i]});
+    console.log("Oracles: " + indexes);
     for (var j = 0; j < indexes.length; j++) {
       try {
-
-        if(requestedIndex == j){
+        console.log("Trying for Oracle at index :" + indexes[j] + " and requested Index: " + requestedIndex);
+        if(requestedIndex == indexes[j]){
           console.log("Submitting Oracle Response For Flight: " + flight + " At Index: " + indexes[j]);
 
           await flightSuretyApp.methods.submitOracleResponse(
@@ -74,12 +75,32 @@ async function listenEvents() {
     }
   });
 
-  flightSuretyData.events.AmountCreditedToPessangerForDelayedFlight({}, async (error, event)  => {
-    logEvent(event, "AmountCreditedToPessangerForDelayedFlight");
+  flightSuretyApp.events.RegisterAirline({}, async (error, event)  => {
+    logEvent(event, "Registering Airlines");
   });
 
-  flightSuretyData.events.withdrawCreditedAmountEvent({}, async (error, event)  => {
-    logEvent(event, "withdrawCreditedAmountEvent");
+  flightSuretyApp.events.AirlineFunded({}, async (error, event)  => {
+    logEvent(event, "Airline Funded");
+  });
+
+  flightSuretyApp.events.AirlinePendingVoting({}, async (error, event)  => {
+    logEvent(event, "Airline Added To Queue For Pending.");
+  });
+
+  flightSuretyApp.events.AirlineVoted({}, async (error, event)  => {
+    logEvent(event, "Airline Voting Done");
+  });
+
+  flightSuretyApp.events.InsurencePurchased({}, async (error, event)  => {
+    logEvent(event, "Insurence Purchased");
+  });
+
+  flightSuretyApp.events.FlightDelayed({}, async (error, event)  => {
+    logEvent(event, "Flight Delayed");
+  });
+
+  flightSuretyApp.events.AmountWithdrawn({}, async (error, event)  => {
+    logEvent(event, "Amount Withdrawn");
   });
 
 }

@@ -11,6 +11,12 @@ module.exports = {
       port: 8545,
       network_id: '*',
       gas: 6721900
+    },
+    GanacheUI: {
+      host: '127.0.0.1',
+      port: 8545,
+      network_id: '*',
+      gas: 6721900
     }
   },
   compilers: {

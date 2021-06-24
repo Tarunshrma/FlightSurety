@@ -44,8 +44,7 @@ contract FlightSuretyData {
 
     mapping (address => Airline)  RegisteredAirlines;            // Registered Airlines
     mapping (address => Airline) private PendingRegistrationAirlines;   //Airlines in queue to be registered
-    mapping (address => bool) authorizeContracts;
-
+    mapping(address => bool) private authorizedAppContracts;
 
 
 
@@ -66,6 +65,8 @@ contract FlightSuretyData {
     event  ExistingPessangerNewFlightInsurence(address pessangerAddress);
 
     event AmountCreditedToPessangerForDelayedFlight(address pessangerAddress,uint256 orginalInsurenceAmount,uint256 claimAmount);   
+
+    event withdrawCreditedAmountEvent(uint256 lineNumber);
 
     /**
     * @dev Constructor
@@ -107,11 +108,11 @@ contract FlightSuretyData {
     }
 
         /**
-    * @dev Modifier that requires the "ContractOwner" account to be the function caller
+    * @dev Modifier that requires the calling contract has been authorized
     */
-    modifier requireAuthorizeContract(address contractAddress)
+    modifier requireAuthorizeContract()
     {
-        require(authorizeContracts[contractAddress], "Caller is not authorized");
+        require(authorizedAppContracts[msg.sender] || msg.sender == address(this), "Caller is not an authorized contract");
         _;
     }
 
@@ -153,29 +154,29 @@ contract FlightSuretyData {
     /********************************************************************************************/
 
 
-   /**
-    * @dev Add an authorize contract
-    *      Can only be called by contract owner
-    *
-    */  
-    function setAuthorizeContract(address contractAddress) external requireContractOwner
-    {
-        authorizeContracts[contractAddress] = true;
-    } 
+//    /**
+//     * @dev Add an authorize contract
+//     *      Can only be called by contract owner
+//     *
+//     */  
+//     function setAuthorizeContract(address contractAddress) external requireContractOwner
+//     {
+//         authorizeContracts[contractAddress] = true;
+//     } 
 
-       /**
-    * @dev Remove an authorize contract
-           Should have registered earlier
-    *      Can only be called by contract owner
-    *
-    */  
-    function removeAuthorizeContract(address contractAddress) 
-    external 
-    requireAuthorizeContract(contractAddress)
-    requireContractOwner
-    {
-        delete authorizeContracts[contractAddress];
-    } 
+    //    /**
+    // * @dev Remove an authorize contract
+    //        Should have registered earlier
+    // *      Can only be called by contract owner
+    // *
+    // */  
+    // function removeAuthorizeContract(address contractAddress) 
+    // external 
+    // requireAuthorizeContract(contractAddress)
+    // requireContractOwner
+    // {
+    //     delete authorizeContracts[contractAddress];
+    // } 
 
    /**
     * @dev Add an airline to the registration
@@ -189,7 +190,7 @@ contract FlightSuretyData {
                                 bool votingRequired   
                             )
                             public
-                            //requireAuthorizeContract(msg.sender)
+                            //requireAuthorizeContract
                             requireIsOperational
                             
     {
@@ -221,7 +222,7 @@ contract FlightSuretyData {
                                 address airlineAddress
                             )
                             external
-                            //requireAuthorizeContract(msg.sender)
+                            //requireAuthorizeContract
                             requireIsOperational
                             
     {
@@ -249,7 +250,7 @@ contract FlightSuretyData {
                                 address airlineAddress
                             )
                             external
-                            //requireAuthorizeContract(msg.sender)
+                            //requireAuthorizeContract
                             requireIsOperational
                             returns (uint voteCount)
                             
@@ -279,7 +280,7 @@ contract FlightSuretyData {
                             ) 
                             external
                             payable
-                            //requireAuthorizeContract(msg.sender)
+                            //requireAuthorizeContract
                             requireIsOperational
     {
          RegisteredAirlines[airlineAddress].isFunded = true; 
@@ -299,7 +300,7 @@ contract FlightSuretyData {
                             external
                             payable
                             requireIsOperational
-                            //requireAuthorizeContract(msg.sender)
+                            //requireAuthorizeContract
     {
 
     //Check if flight is already purchased by this pessanger, if yes then revert the transation
@@ -361,6 +362,7 @@ contract FlightSuretyData {
                                     bytes32 flightKey
                                 )
                                 external
+                                //requireAuthorizeContract
     {
     //Check if flight is already purchased by this pessanger, if yes then revert the transation
         for (uint i=0; i<insuredPessangers.length; i++) {
@@ -378,9 +380,12 @@ contract FlightSuretyData {
 
     }
 
-    event withdrawCreditedAmountEvent(uint256 lineNumber);
 
-    function withdrawCreditedAmount(address pessangerAddress) external  payable returns(uint256){
+
+    function withdrawCreditedAmount(address pessangerAddress) external 
+                                                                payable
+                                                                //requireAuthorizeContract 
+                                                                returns(uint256){
 
         emit withdrawCreditedAmountEvent(383);
 
@@ -408,21 +413,15 @@ contract FlightSuretyData {
         return creditAmount;
        
     }
-    
 
     /**
-     *  @dev Transfers eligible payout funds to insuree
-     *
+    * @dev Authorize an App Contract to delegate to this data contract
     */
-    // function pay
-    //                         (
-    //                         )
-    //                         external
-    //                         pure
-    // {
-    // }
-
-
+    function authorizeCaller(address _appContract)
+    public
+    {
+        authorizedAppContracts[_appContract] = true;
+    }
 
     /**
     * @dev Get registered airlines count.
@@ -431,6 +430,7 @@ contract FlightSuretyData {
     function getRegisteredAirlinesCount()
                         view
                         public
+                        //requireAuthorizeContract
                         returns(uint256) 
     {
         return registeredAirlineCount;
@@ -446,6 +446,7 @@ contract FlightSuretyData {
                         )
                         view
                         public
+                        //requireAuthorizeContract
                         returns(bool) 
     {
         return PendingRegistrationAirlines[airlineAddress].airlineAddress != address(0);
@@ -461,6 +462,7 @@ contract FlightSuretyData {
                         )
                         view
                         public
+                        //requireAuthorizeContract
                         returns(bool) 
     {
         return RegisteredAirlines[airlineAddress].isRegistered;
@@ -476,6 +478,7 @@ contract FlightSuretyData {
                         )
                         view
                         public
+                        //requireAuthorizeContract
                         returns(bool) 
     {
         return RegisteredAirlines[airlineAddress].isFunded;
