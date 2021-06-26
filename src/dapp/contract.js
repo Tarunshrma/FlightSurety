@@ -7,8 +7,8 @@ export default class Contract {
     constructor(network, callback) {
 
         this.config = Config[network];
-        this.web3 = new Web3(new Web3.providers.HttpProvider(this.config.url));
-        //this.web3 = new Web3(window.ethereum);
+        //this.web3 = new Web3(new Web3.providers.HttpProvider(this.config.url));
+        this.web3 = new Web3(window.ethereum);
         this.flightSuretyApp = new this.web3.eth.Contract(FlightSuretyApp.abi, this.config.appAddress);
         this.initialize(callback);
         this.owner = null;
