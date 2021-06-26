@@ -52,7 +52,7 @@ Run Unit Test Cases
 ```bash
 truffle test
 ```
-![Unit Test Case](/assets/unit tests.png)
+![Unit Test Case](/assets/unit-tests.png)
 
 Deploy Smart Contracts To Local Blockchain Instance
 ```bash
