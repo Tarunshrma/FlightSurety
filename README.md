@@ -1,52 +1,64 @@
-# FlightSurety
+# Fight Surety | Ethereum 
 
-FlightSurety is a sample application project for Udacity's Blockchain course.
+## Table of Contents
+1. [General Info](#general-info)
+2. [Design Diagrams](#design-diagrams)
+3. [How to Run](#installation)
+4. [Unit Tests](#unit-test)
 
-## Install
+### general-info
+This is simplified version of Flight insurence solution using Blockchain technologies. This project is part of [Udacity Nanodegree program](https://andresaaap.medium.com/flightsurety-project-faq-udacity-blockchain-b4bd4fb03320).
 
-This repository contains Smart Contract code in Solidity (using Truffle), tests (also using Truffle), dApp scaffolding (using HTML, CSS and JS) and server app scaffolding.
-
-To install, download or clone the repo, then:
-
-`npm install`
-`truffle compile`
-
-## Develop Client
-
-To run truffle tests:
-
-`truffle test ./test/flightSurety.js`
-`truffle test ./test/oracles.js`
-
-To use the dapp:
-
-`truffle migrate`
-`npm run dapp`
-
-To view dapp:
-
-`http://localhost:8000`
-
-## Develop Server
-
-`npm run server`
-`truffle test ./test/oracles.js`
-
-## Deploy
-
-To build dapp for prod:
-`npm run dapp:prod`
-
-Deploy the contents of the ./dapp folder
+Using this solution, Passengers can directly buy insurance for flight and can be paid into their account in case flight is delayed, without involvement of any third party insurance companies, banks etc. This solution will result in removal of middleman like insurance companies and results in faster insurance processing, less transaction fee and more trust between Airline companies and passengers.   
 
 
-## Resources
+### design-diagrams
+#### High Level Diagram
+![Design Diagram](/design-diagrams/high-level-diagram.png)
 
-* [How does Ethereum work anyway?](https://medium.com/@preethikasireddy/how-does-ethereum-work-anyway-22d1df506369)
-* [BIP39 Mnemonic Generator](https://iancoleman.io/bip39/)
-* [Truffle Framework](http://truffleframework.com/)
-* [Ganache Local Blockchain](http://truffleframework.com/ganache/)
-* [Remix Solidity IDE](https://remix.ethereum.org/)
-* [Solidity Language Reference](http://solidity.readthedocs.io/en/v0.4.24/)
-* [Ethereum Blockchain Explorer](https://etherscan.io/)
-* [Web3Js Reference](https://github.com/ethereum/wiki/wiki/JavaScript-API)
+#### Sequence Diagram
+![Sequence Diagram](/design-diagrams/sequence-diagram.png)
+
+
+### installation
+A step by step series of examples that tell you have to get a development env running
+
+Clone this repository:
+
+```bash
+git clone https://github.com/Tarunshrma/coffee-supply-chain-ethereum.git
+```
+
+Change directory to coffee-supply-chain-ethereum folder and install all requisite npm packages (as listed in package.json):
+
+```bash
+cd coffee-supply-chain-ethereum
+npm install
+```
+
+Compile the smart contracts
+```bash
+truffle compile
+```
+
+Launch the local instance of blockchain to test your smart contracts. 
+```bash
+truffle develop
+```
+This command will launch the local blockchain at http://127.0.0.1:9545/ with test accounts and private keys. You can use those accounts to test and execute the smart contracts locally without deploying it to TestNet or MainNet. 
+![Truffle Develop Info](/assests/truffle-develop-command.png)
+
+Run Test Cases
+```bash
+truffle test
+```
+![Unit Test Case](/assests/test-case-suite.png)
+
+Run front end
+```bash
+npm run dev
+```
+![Unit Test Case](/assests/run-frontend.png)
+
+### FrontEnd
+![Front End](/assests/front-end.png)
