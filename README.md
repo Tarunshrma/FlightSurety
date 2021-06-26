@@ -46,33 +46,33 @@ Open the terminal and launch the local instance of blockchain to test your smart
 ganache-cli -a 20
 ```
 This command will launch the local blockchain at http://127.0.0.1:8545/ with 20 test accounts and private keys. You can use those accounts to test and execute the smart contracts locally without deploying it to TestNet or MainNet. 
-![Truffle Develop Info](/assests/local-blockchain.png)
+![Truffle Develop Info](/assets/local-blockchain.png)
 
 Run Unit Test Cases
 ```bash
 truffle test
 ```
-![Unit Test Case](/assests/unit tests.png)
+![Unit Test Case](/assets/unit tests.png)
 
 Deploy Smart Contracts To Local Blockchain Instance
 ```bash
 truffle migrate --network development
 ```
-![Contract Deployment](/assests/contract-deployment-1.png)
-![Contract Deployment](/assests/contract-deployment-2.png)
+![Contract Deployment](/assets/contract-deployment-1.png)
+![Contract Deployment](/assets/contract-deployment-2.png)
 
 ### FrontEnd
 Deploy front end using below command
 ```bash
 npm run dapp
 ```
-![Running Front End](/assests/run-frontend-flight-surety.png)
+![Running Front End](/assets/run-frontend-flight-surety.png)
 
-![Front End](/assests/front-end.png)
+![Front End](/assets/front-end.png)
 
 ### Oracles
 Deploy nodejs server to register oracles.
 ```bash
 npm run server
 ```
-![Running Server](/assests/oracles.png)
+![Running Server](/assets/oracles.png)
